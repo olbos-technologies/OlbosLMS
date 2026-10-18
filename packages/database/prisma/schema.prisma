@@ -373,6 +373,10 @@ enum NotificationCategory {
 }
 
 enum AuditAction {
+  CAMPUS_PROGRAM_CREATED
+  CAMPUS_TERM_CREATED
+  CAMPUS_COURSE_CREATED
+  CAMPUS_SECTION_CREATED
   LOGIN
   LOGIN_FAILED
   LOGOUT
@@ -550,6 +554,10 @@ model Organization {
   updatedAt     DateTime           @updatedAt
   deletedAt     DateTime?
 
+  academicPrograms      AcademicProgram[]
+  academicTerms         AcademicTerm[]
+  academicCourses       AcademicCourse[]
+  academicSections      AcademicSection[]
   users                 User[]
   roles                 Role[]
   userRoles             UserRole[]
@@ -1126,6 +1134,7 @@ model Course {
   owner            User?          @relation("CourseOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   publishedVersion CourseVersion? @relation("PublishedVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
 
+  academicSections    AcademicSection[]
   versions            CourseVersion[]      @relation("CourseVersions")
   enrollments         Enrollment[]
   requirements        TrainingRequirement[]
@@ -1142,6 +1151,7 @@ model Course {
   prerequisites       CoursePrerequisite[] @relation("CourseWithPrereqs")
   requiredFor         CoursePrerequisite[] @relation("PrereqCourse")
 
+  @@unique([organizationId, id])
   @@unique([organizationId, slug])
   @@index([organizationId, status])
   @@index([organizationId, type])
@@ -2701,4 +2711,73 @@ model ReportRun {
 
   @@index([organizationId, reportKey, createdAt])
   @@map("report_runs")
+}
+
+// College administration uses the existing organization as the institution.
+// Composite foreign keys prevent references across institution boundaries.
+model AcademicProgram {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  code String
+  name String
+  award String
+  requiredCredits Int
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  courses AcademicCourse[]
+  @@unique([organizationId, id])
+  @@unique([organizationId, code])
+  @@map("academic_programs")
+}
+
+model AcademicTerm {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  code String
+  name String
+  startsOn DateTime @db.Date
+  endsOn DateTime @db.Date
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sections AcademicSection[]
+  @@unique([organizationId, id])
+  @@unique([organizationId, code])
+  @@map("academic_terms")
+}
+
+model AcademicCourse {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  programId String @db.Uuid
+  code String
+  title String
+  credits Int
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  program AcademicProgram @relation(fields: [organizationId, programId], references: [organizationId, id], onDelete: Restrict)
+  sections AcademicSection[]
+  @@unique([organizationId, id])
+  @@unique([organizationId, code])
+  @@index([organizationId, programId])
+  @@map("academic_courses")
+}
+
+model AcademicSection {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  academicCourseId String @db.Uuid
+  termId String @db.Uuid
+  code String
+  capacity Int
+  /// Optional bridge to existing teaching content; does not enroll students yet.
+  lmsCourseId String? @db.Uuid
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  academicCourse AcademicCourse @relation(fields: [organizationId, academicCourseId], references: [organizationId, id], onDelete: Restrict)
+  term AcademicTerm @relation(fields: [organizationId, termId], references: [organizationId, id], onDelete: Restrict)
+  lmsCourse Course? @relation(fields: [organizationId, lmsCourseId], references: [organizationId, id], onDelete: Restrict)
+  @@unique([organizationId, termId, academicCourseId, code])
+  @@index([organizationId, academicCourseId])
+  @@index([organizationId, lmsCourseId])
+  @@map("academic_sections")
 }

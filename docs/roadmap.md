@@ -44,6 +44,13 @@ calendar events, learning paths, question banks as a managed surface, safety
 scenarios and attempts, credentials beyond certificates, integrations, API keys,
 webhooks, invoices.
 
+## College management
+
+Olbos Campus academic foundation is implemented: programs, terms, catalog
+courses, sections, permissions, API, and `/campus` screen. Validation and rollout
+are described in [olbos-campus.md](olbos-campus.md). Admissions, student
+registration, transcripts, GPA, and tuition remain future phases.
+
 ## Not started
 
 - Platform administration (organizations, plans, platform analytics, support access)

@@ -21,6 +21,10 @@ import { MissingTenantContextError, TenantIsolationError } from './errors.js';
 
 /** Models that carry an `organizationId` column and are therefore tenant-owned. */
 export const TENANT_OWNED_MODELS = [
+  'AcademicCourse',
+  'AcademicProgram',
+  'AcademicSection',
+  'AcademicTerm',
   'AiConversation',
   'AiGeneration',
   'AiMessage',

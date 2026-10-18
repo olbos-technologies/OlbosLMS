@@ -34,6 +34,19 @@ export interface NavigationSection {
 
 export const NAVIGATION: readonly NavigationSection[] = [
   {
+    id: 'campus',
+    label: 'College Administration',
+    items: [
+      {
+        id: 'campus',
+        label: 'Olbos Campus',
+        href: '/campus',
+        icon: 'GraduationCap',
+        anyOf: ['campus:read'],
+      },
+    ],
+  },
+  {
     id: 'command-center',
     label: 'Command Center',
     items: [
