@@ -80,6 +80,7 @@ export const envSchema = z.object({
   BILLING_DRIVER: z.enum(['manual', 'stripe']).default('manual'),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  BILLING_RETURN_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -105,6 +106,10 @@ const crossFieldChecks = (env: Env): string[] => {
   }
 
   if (env.BILLING_DRIVER === 'stripe') {
+    if (!env.BILLING_RETURN_URL)
+      problems.push('BILLING_RETURN_URL is required when BILLING_DRIVER=stripe');
+    if (env.BILLING_RETURN_URL && !env.WEB_ORIGIN.includes(new URL(env.BILLING_RETURN_URL).origin))
+      problems.push('BILLING_RETURN_URL must use a configured WEB_ORIGIN');
     if (!env.STRIPE_SECRET_KEY)
       problems.push('STRIPE_SECRET_KEY is required when BILLING_DRIVER=stripe');
     if (!env.STRIPE_WEBHOOK_SECRET) {

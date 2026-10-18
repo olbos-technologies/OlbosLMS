@@ -95,6 +95,7 @@ export const campusRoutes: FastifyPluginAsync = async (app) => {
   app.post('/campus/programs', async (request, reply) => {
     const { db, organizationId } = request.requireTenant();
     request.authorize('campus:manage');
+    request.requireEntitlement('CAMPUS_MODULE');
     const body = parseBody(request, programBody);
     const row = await db.academicProgram.create({ data: { ...body, organizationId } });
     await request.audit({
@@ -108,6 +109,7 @@ export const campusRoutes: FastifyPluginAsync = async (app) => {
   app.post('/campus/terms', async (request, reply) => {
     const { db, organizationId } = request.requireTenant();
     request.authorize('campus:manage');
+    request.requireEntitlement('CAMPUS_MODULE');
     const body = parseBody(request, termBody);
     const row = await db.academicTerm.create({ data: { ...body, organizationId } });
     await request.audit({
@@ -121,6 +123,7 @@ export const campusRoutes: FastifyPluginAsync = async (app) => {
   app.post('/campus/courses', async (request, reply) => {
     const { db, organizationId } = request.requireTenant();
     request.authorize('campus:manage');
+    request.requireEntitlement('CAMPUS_MODULE');
     const body = parseBody(request, courseBody);
     if (!(await db.academicProgram.findFirst({ where: { id: body.programId } })))
       throw ApiError.notFound('Program');
@@ -136,6 +139,7 @@ export const campusRoutes: FastifyPluginAsync = async (app) => {
   app.post('/campus/sections', async (request, reply) => {
     const { db, organizationId } = request.requireTenant();
     request.authorize('campus:manage');
+    request.requireEntitlement('CAMPUS_MODULE');
     const body = parseBody(request, sectionBody);
     if (!(await db.academicCourse.findFirst({ where: { id: body.academicCourseId } })))
       throw ApiError.notFound('Academic course');

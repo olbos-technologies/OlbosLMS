@@ -217,3 +217,24 @@ describe('assertions', () => {
     expect(() => assertWithinLimit(forPlan('enterprise'), 'MAX_USERS', 999_999)).not.toThrow();
   });
 });
+
+it('expires trial plan grants at the trial boundary while preserving valid overrides', () => {
+  const now = new Date('2026-10-18T12:00:00Z');
+  const resolved = resolveEntitlements({
+    subscriptionStatus: 'TRIALING',
+    trialEndsAt: now,
+    now,
+    planEntitlements: [{ key: 'CERTIFICATES', valueType: 'BOOLEAN', boolValue: true }],
+    overrides: [{ key: 'CUSTOM_BRANDING', valueType: 'BOOLEAN', boolValue: true }],
+  });
+  expect(resolved.allows('CERTIFICATES')).toBe(false);
+  expect(resolved.allows('CUSTOM_BRANDING')).toBe(true);
+  expect(
+    resolveEntitlements({
+      subscriptionStatus: 'TRIALING',
+      trialEndsAt: new Date(now.getTime() + 1),
+      now,
+      planEntitlements: [{ key: 'CERTIFICATES', valueType: 'BOOLEAN', boolValue: true }],
+    }).allows('CERTIFICATES'),
+  ).toBe(true);
+});

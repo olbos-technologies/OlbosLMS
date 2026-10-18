@@ -34,6 +34,8 @@ export const TENANT_OWNED_MODELS = [
   'Assignment',
   'AttendanceEntry',
   'AuditLog',
+  'BillingCheckout',
+  'BillingWebhookEvent',
   'CalendarEvent',
   'Certificate',
   'ComplianceState',

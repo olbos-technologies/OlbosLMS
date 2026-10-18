@@ -47,7 +47,7 @@ const loadOptions = async (resource: Resource | 'lms'): Promise<Row[]> => {
 };
 
 export default function CampusPage() {
-  const { can, isLoading } = useSession();
+  const { can, hasEntitlement, isLoading } = useSession();
   const client = useQueryClient();
   const [resource, setResource] = useState<Resource>('programs');
   const [page, setPage] = useState(1);
@@ -86,6 +86,7 @@ export default function CampusPage() {
       await Promise.all([
         client.invalidateQueries({ queryKey: ['campus'] }),
         client.invalidateQueries({ queryKey: ['campus-options'] }),
+        client.invalidateQueries({ queryKey: ['institution-setup'] }),
       ]);
     },
   });
@@ -155,6 +156,16 @@ export default function CampusPage() {
           {error.message}
         </Alert>
       ) : null}
+      {!hasEntitlement('CAMPUS_MODULE') ? (
+        <Alert
+          className="mb-4"
+          tone="warning"
+          title="Campus creation is not included in the current subscription"
+        >
+          Existing academic records remain visible. Ask your institution administrator to review the
+          subscription or trial end date.
+        </Alert>
+      ) : null}
       <div className="grid items-start gap-5 xl:grid-cols-[1fr_360px]">
         <Card className="min-w-0 p-4">
           <div className="mb-4 flex items-center justify-between gap-2">
@@ -213,7 +224,7 @@ export default function CampusPage() {
             </Button>
           </div>
         </Card>
-        {can('campus:manage') ? (
+        {can('campus:manage') && hasEntitlement('CAMPUS_MODULE') ? (
           <Card className="p-4">
             <h2 className="mb-4 font-semibold text-ink">
               Add{' '}

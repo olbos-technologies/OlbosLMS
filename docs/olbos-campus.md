@@ -36,7 +36,9 @@ Awards: CERTIFICATE, ASSOCIATE, BACHELOR, MASTER, DOCTORATE. Codes normalize to
 uppercase. End dates cannot precede start dates. Credits and capacities are
 validated at the API and database boundary.
 
-`campus:read` controls listing and navigation; `campus:manage` controls creation.
+`campus:read` controls listing and navigation; `campus:manage` controls creation, which also requires the `CAMPUS_MODULE`
+subscription entitlement. Existing academic structure remains readable with
+`campus:read` after cancellation or trial expiry.
 Organization owners and administrators receive these through the existing
 permission catalog. Custom roles can grant either permission. Linking LMS
 content also requires `course:read`. The migration adds both permissions to existing built-in administrator roles

@@ -51,6 +51,15 @@ courses, sections, permissions, API, and `/campus` screen. Validation and rollou
 are described in [olbos-campus.md](olbos-campus.md). Admissions, student
 registration, transcripts, GPA, and tuition remain future phases.
 
+## Institution SaaS foundation
+
+Operator-assisted institution provisioning, guided setup, a billing dashboard,
+monthly hosted checkout, a billing portal, and signed provider-event
+reconciliation are implemented. Payments default to disabled. See
+[institution-saas.md](institution-saas.md) for configuration, tests, limitations,
+and production release prerequisites. Public signup and invitation delivery are
+not implemented, and production readiness has not been established.
+
 ## Not started
 
 - Platform administration (organizations, plans, platform analytics, support access)
@@ -102,7 +111,7 @@ headless and does not start it.
 | 4 · Certification   | Complete except PDF rendering                                                 |
 | 5 · Advanced safety | Partial — practicals, incidents, JHA, observations built; scenario player not |
 | 6 · AI              | Guardrails and endpoints built; applying approved output is not               |
-| 7 · Billing         | Entitlements complete; payment provider not integrated                        |
+| 7 · Billing         | Entitlements and provider integration implemented; staging validation pending |
 | 8 · Enterprise      | Not started                                                                   |
 | 9 · Hardening       | Partial — security review done; load, accessibility and DR testing not        |
 

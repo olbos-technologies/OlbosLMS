@@ -1,21 +1,24 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { PLAN_CATALOGUE } from '@olbos/billing';
-import { ok } from '../../lib/http.js';
+import { getEnv } from '@olbos/config';
+import { z } from 'zod';
+import {
+  beginInstitutionCheckout,
+  institutionBillingPortal,
+} from '../../services/billing.service.js';
+import { ok, parseBody } from '../../lib/http.js';
 
-/**
- * Billing (§34).
- *
- * Read-only here: plan changes and payment collection belong to the billing
- * provider integration, which is a separate deployment concern. What this
- * exposes is the tenant's current position and, crucially, *why* a feature is
- * or is not available — an entitlement with its source, so support can answer
- * "why can't I see the training matrix?" without reading the database.
- */
+/** Institution subscriptions: provider-hosted checkout, portal, and local billing records. */
 export const billingRoutes: FastifyPluginAsync = async (app) => {
   app.get('/billing/plans', async (request) => {
-    request.requireAuth();
+    const { db } = request.requireTenant();
+    request.authorize('billing:read');
+    const plans = await db.plan.findMany({
+      where: { isPublic: true },
+      orderBy: { sortOrder: 'asc' },
+      include: { entitlements: true },
+    });
     return ok(
-      PLAN_CATALOGUE.filter((plan) => plan.isPublic).map((plan) => ({
+      plans.map((plan) => ({
         key: plan.key,
         name: plan.name,
         tier: plan.tier,
@@ -23,14 +26,53 @@ export const billingRoutes: FastifyPluginAsync = async (app) => {
         priceCents: plan.priceCents,
         currency: plan.currency,
         interval: plan.interval,
+        selfServiceAvailable:
+          getEnv().BILLING_DRIVER === 'stripe' &&
+          !!plan.externalPriceId &&
+          plan.priceCents > 0 &&
+          plan.interval === 'month',
         entitlements: plan.entitlements.map((grant) => ({
           key: grant.key,
           valueType: grant.valueType,
-          boolValue: grant.boolValue ?? null,
-          numValue: grant.numValue ?? null,
+          boolValue: grant.boolValue,
+          numValue: grant.numValue,
         })),
       })),
     );
+  });
+
+  app.post(
+    '/billing/checkout',
+    { config: { rateLimit: { max: 10, timeWindow: '5 minutes' } } },
+    async (request) => {
+      const { db, organizationId, principal } = request.requireTenant();
+      request.authorize('billing:manage');
+      const body = parseBody(request, z.object({ planKey: z.string().min(1).max(64) }).strict());
+      const session = await beginInstitutionCheckout(
+        db,
+        organizationId,
+        body.planKey,
+        principal.email,
+      );
+      await request.audit({
+        action: 'SUBSCRIPTION_CHANGED',
+        entityType: 'subscription',
+        summary: 'Opened institution subscription checkout',
+      });
+      return ok(session);
+    },
+  );
+
+  app.post('/billing/portal', async (request) => {
+    const { db, organizationId } = request.requireTenant();
+    request.authorize('billing:manage');
+    const session = await institutionBillingPortal(db, organizationId);
+    await request.audit({
+      action: 'SUBSCRIPTION_CHANGED',
+      entityType: 'subscription',
+      summary: 'Opened institution billing portal',
+    });
+    return ok(session);
   });
 
   app.get('/billing/subscription', async (request) => {
@@ -46,6 +88,8 @@ export const billingRoutes: FastifyPluginAsync = async (app) => {
         trialEndsAt: true,
         cancelAtPeriodEnd: true,
         seatsPurchased: true,
+        externalCustomerId: true,
+        externalSubId: true,
         plan: {
           select: {
             key: true,
@@ -60,7 +104,7 @@ export const billingRoutes: FastifyPluginAsync = async (app) => {
     });
 
     const [userCount, courseCount, storageBytes] = await Promise.all([
-      db.employee.count({ where: { deletedAt: null } }),
+      db.user.count({ where: { deletedAt: null } }),
       db.course.count({ where: { deletedAt: null } }),
       db.storedFile.aggregate({ where: { deletedAt: null }, _sum: { byteSize: true } }),
     ]);
@@ -68,7 +112,25 @@ export const billingRoutes: FastifyPluginAsync = async (app) => {
     const usedGb = Number(storageBytes._sum.byteSize ?? 0) / 1_073_741_824;
 
     return ok({
-      subscription,
+      subscription: subscription
+        ? {
+            ...subscription,
+            status:
+              subscription.status === 'TRIALING' &&
+              subscription.trialEndsAt &&
+              subscription.trialEndsAt <= new Date()
+                ? 'EXPIRED'
+                : subscription.status,
+            externalCustomerId: undefined,
+            externalSubId: undefined,
+          }
+        : null,
+      billing: {
+        onlineEnabled: getEnv().BILLING_DRIVER === 'stripe',
+        portalAvailable: getEnv().BILLING_DRIVER === 'stripe' && !!subscription?.externalCustomerId,
+        managedSubscription:
+          !!subscription?.externalSubId && !['CANCELLED', 'EXPIRED'].includes(subscription.status),
+      },
       // Each entitlement carries where it came from — plan, tenant override, or
       // not granted — which is what makes support answerable.
       entitlements: principal.entitlements.all.map((entitlement) => ({
