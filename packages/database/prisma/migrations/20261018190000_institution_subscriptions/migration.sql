@@ -1,6 +1,3 @@
--- AlterEnum
-ALTER TYPE "EntitlementKey" ADD VALUE 'CAMPUS_MODULE';
-
 -- AlterTable
 ALTER TABLE "organizations" ADD COLUMN     "billingEmail" TEXT,
 ADD COLUMN     "contactEmail" TEXT,

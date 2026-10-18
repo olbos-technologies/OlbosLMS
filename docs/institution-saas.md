@@ -103,7 +103,10 @@ based on this first dashboard.
 
 ## Rollout and verification
 
-Apply the additive subscription migration after the Campus migration. It adds
+Apply the entitlement-enum migration, then the additive subscription migration,
+after the Campus migration. The enum change is committed separately because
+PostgreSQL cannot use a new enum value in the transaction that introduces it.
+The subscription migration adds
 profile fields, price mappings, checkout reservations, webhook receipts, and
 unique customer/subscription/invoice identifiers. First check existing external
 IDs for duplicates; migrate does not silently merge or discard billing records.
