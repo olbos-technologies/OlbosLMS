@@ -23,7 +23,8 @@
     "studio": "dotenv -e ../../.env -- prisma studio",
     "seed": "dotenv -e ../../.env -- tsx --conditions development prisma/seed.ts",
     "validate": "dotenv -e ../../.env -- prisma validate",
-    "format": "dotenv -e ../../.env -- prisma format"
+    "format": "dotenv -e ../../.env -- prisma format",
+    "provision:institution": "dotenv -e ../../.env -- tsx --conditions development scripts/provision-institution.ts"
   },
   "dependencies": {
     "@olbos/config": "workspace:*",

@@ -1,4 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { institutionRoutes } from './institutions.routes.js';
+import { campusRoutes } from './campus.routes.js';
 import { aiRoutes } from './ai.routes.js';
 import { analyticsRoutes } from './analytics.routes.js';
 import { authRoutes } from './auth.routes.js';
@@ -15,6 +17,8 @@ import { trainingRoutes } from './training.routes.js';
 /** Everything under `/api/v1`. */
 export const registerV1Routes: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes);
+  await app.register(campusRoutes);
+  await app.register(institutionRoutes);
   await app.register(meRoutes);
   await app.register(organizationRoutes);
   await app.register(peopleRoutes);

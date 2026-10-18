@@ -96,6 +96,7 @@ export const buildPrincipal = async (
           subscription: {
             select: {
               status: true,
+              trialEndsAt: true,
               plan: { select: { entitlements: true } },
             },
           },
@@ -136,6 +137,7 @@ export const buildPrincipal = async (
   const entitlements = resolveEntitlements({
     planEntitlements: subscription?.plan.entitlements ?? [],
     overrides: user.organization?.entitlementOverrides ?? [],
+    trialEndsAt: subscription?.trialEndsAt,
     subscriptionStatus: (subscription?.status as SubscriptionStatus | undefined) ?? 'ACTIVE',
   });
 

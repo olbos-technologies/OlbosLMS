@@ -159,3 +159,5 @@ export {
   type RiskThresholds,
   type RiskWeights,
 } from './risk.js';
+
+export { buildInstitutionSetup, type InstitutionSetupInput } from './institution.js';

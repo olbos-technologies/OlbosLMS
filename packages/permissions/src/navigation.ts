@@ -34,6 +34,19 @@ export interface NavigationSection {
 
 export const NAVIGATION: readonly NavigationSection[] = [
   {
+    id: 'campus',
+    label: 'College Administration',
+    items: [
+      {
+        id: 'campus',
+        label: 'Olbos Campus',
+        href: '/campus',
+        icon: 'GraduationCap',
+        anyOf: ['campus:read'],
+      },
+    ],
+  },
+  {
     id: 'command-center',
     label: 'Command Center',
     items: [
@@ -700,11 +713,10 @@ export const NAVIGATION: readonly NavigationSection[] = [
     items: [
       {
         id: 'admin-organization',
-        label: 'Organization',
-        href: '/admin/organization',
+        label: 'Institution Setup',
+        href: '/admin/institution',
         icon: 'Building2',
         anyOf: ['organization:update'],
-        status: 'planned',
       },
       {
         id: 'admin-users',
@@ -728,7 +740,6 @@ export const NAVIGATION: readonly NavigationSection[] = [
         href: '/admin/billing',
         icon: 'CreditCard',
         anyOf: ['billing:read'],
-        status: 'planned',
       },
       {
         id: 'admin-integrations',

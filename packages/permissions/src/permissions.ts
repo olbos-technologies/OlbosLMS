@@ -74,6 +74,8 @@ export const PERMISSION_DEFINITIONS = define([
   { slug: 'job_role:read', group: 'people', description: 'View job roles' },
   { slug: 'job_role:manage', group: 'people', description: 'Create and edit job roles' },
 
+  { slug: 'campus:read', group: 'academics', description: 'View college academic structure' },
+  { slug: 'campus:manage', group: 'academics', description: 'Manage college academic structure' },
   // --- academics ----------------------------------------------------------
   { slug: 'course:read', group: 'academics', description: 'View the course catalogue' },
   { slug: 'course:create', group: 'academics', description: 'Create courses' },

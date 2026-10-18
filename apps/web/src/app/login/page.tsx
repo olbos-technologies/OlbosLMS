@@ -21,6 +21,7 @@ import { api, ApiClientError } from '@/lib/api';
 const schema = z.object({
   email: z.string().trim().min(1, 'Enter your email address').email('Enter a valid email address'),
   password: z.string().min(1, 'Enter your password'),
+  organizationSlug: z.string().trim().max(64).optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -39,7 +40,10 @@ export default function LoginPage() {
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     try {
-      await api.post('/api/v1/auth/login', values);
+      await api.post('/api/v1/auth/login', {
+        ...values,
+        organizationSlug: values.organizationSlug || undefined,
+      });
       // Belt and braces: a cache surviving from a previous session on this
       // browser must never be shown to whoever just signed in.
       queryClient.clear();
@@ -75,6 +79,21 @@ export default function LoginPage() {
 
           <form onSubmit={onSubmit} className="space-y-3" noValidate>
             {formError ? <Alert tone="danger">{formError}</Alert> : null}
+
+            <Field
+              label="Institution workspace code (optional)"
+              htmlFor="organizationSlug"
+              hint="Use the code supplied by your institution, especially if your email belongs to more than one workspace."
+              error={errors.organizationSlug?.message}
+            >
+              <Input
+                id="organizationSlug"
+                autoComplete="organization"
+                placeholder="example-college"
+                aria-invalid={!!errors.organizationSlug}
+                {...register('organizationSlug')}
+              />
+            </Field>
 
             <Field label="Email" htmlFor="email" error={errors.email?.message} required>
               <Input
