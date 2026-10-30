@@ -1,12 +1,14 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
-import { Alert, Badge, Card, EmptyState, Field, Input, Select, Skeleton } from '@olbos/ui';
+import { Alert, Badge, Button, Card, EmptyState, Field, Input, Select, Skeleton } from '@olbos/ui';
 import { api } from '@/lib/api';
 import type { CourseListItem, Paginated } from '@/lib/types';
 import { PageHeader } from '@/components/app-shell';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { formatMinutes, titleCase } from '@/lib/format';
 
 /**
@@ -19,12 +21,13 @@ import { formatMinutes, titleCase } from '@/lib/format';
 export default function CatalogPage() {
   const [search, setSearch] = useState('');
   const [type, setType] = useState('');
+  const settledSearch = useDebouncedValue(search);
 
   const courses = useQuery({
-    queryKey: ['courses', { search, type }],
+    queryKey: ['courses', { search: settledSearch, type }],
     queryFn: async () => {
       const response = await api.get<CourseListItem[]>('/api/v1/courses', {
-        search: search.trim() || undefined,
+        search: settledSearch.trim() || undefined,
         type: type || undefined,
         status: 'PUBLISHED',
         pageSize: 60,
@@ -37,10 +40,15 @@ export default function CatalogPage() {
     <>
       <PageHeader
         title="Course Catalog"
-        description="Published courses available in your organization."
+        description="Explore published courses, delivery formats, and completion requirements."
+        actions={
+          <Link href="/academy" className="portal-primary-action">
+            Certification Academy →
+          </Link>
+        }
       />
 
-      <Card className="mb-4 p-4">
+      <Card className="portal-filter-bar mb-4 p-4">
         <div className="grid gap-3 sm:grid-cols-[1fr_200px]">
           <Field label="Search" htmlFor="catalog-search">
             <div className="relative">
@@ -84,6 +92,27 @@ export default function CatalogPage() {
         </div>
       </Card>
 
+      <div className="portal-results-bar">
+        <p role="status" aria-live="polite">
+          {courses.isLoading
+            ? 'Loading courses…'
+            : courses.error
+              ? 'Course results unavailable'
+              : `Course results: ${courses.data?.meta.total ?? courses.data?.data.length ?? 0}`}
+        </p>
+        {(search || type) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSearch('');
+              setType('');
+            }}
+          >
+            Clear filters
+          </Button>
+        )}
+      </div>
       {courses.isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
@@ -106,7 +135,7 @@ export default function CatalogPage() {
           {courses.data!.data.map((course) => {
             const version = course.publishedVersion;
             return (
-              <Card key={course.id} className="flex flex-col p-4">
+              <Card key={course.id} className="portal-course-card flex flex-col p-4">
                 <div className="flex items-start justify-between gap-2">
                   <h2 className="text-sm font-semibold text-ink">{course.title}</h2>
                   <Badge tone={course.type === 'SAFETY' ? 'warning' : 'neutral'}>
@@ -172,6 +201,11 @@ export default function CatalogPage() {
                   </p>
                 ) : null}
 
+                {course.tags.includes('certification-academy') && (
+                  <Link href="/academy" className="portal-primary-action mt-4">
+                    View learning options →
+                  </Link>
+                )}
                 <p className="mt-auto pt-3 text-[11px] text-ink-subtle">
                   {course._count.requirements} requirement
                   {course._count.requirements === 1 ? '' : 's'} · {course._count.trainingRecords}{' '}

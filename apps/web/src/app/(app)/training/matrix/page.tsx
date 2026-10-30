@@ -21,6 +21,7 @@ import {
 import { api, type ApiClientError, exportUrl } from '@/lib/api';
 import type { ComplianceSummary, TrainingMatrix } from '@/lib/types';
 import { PageHeader } from '@/components/app-shell';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { useSession } from '@/components/session';
 import { complianceTone, formatDate, formatPercent } from '@/lib/format';
 
@@ -52,14 +53,15 @@ export default function TrainingMatrixPage() {
   const [status, setStatus] = useState<string>('');
   const [expiringWithinDays, setExpiringWithinDays] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
+  const settledSearch = useDebouncedValue(search);
 
   const query = useMemo(
     () => ({
-      search: search.trim() || undefined,
+      search: settledSearch.trim() || undefined,
       statuses: status || undefined,
       expiringWithinDays: expiringWithinDays || undefined,
     }),
-    [search, status, expiringWithinDays],
+    [settledSearch, status, expiringWithinDays],
   );
 
   const matrix = useQuery<{ data: TrainingMatrix; meta: Record<string, unknown> }, ApiClientError>({
@@ -114,7 +116,7 @@ export default function TrainingMatrixPage() {
       />
 
       {showFilters ? (
-        <Card className="mb-4 p-4">
+        <Card className="portal-filter-bar mb-4 p-4">
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Search employees" htmlFor="matrix-search">
               <Input
@@ -195,7 +197,7 @@ export default function TrainingMatrixPage() {
           />
         ) : (
           <div className="scroll-x max-h-[70vh] overflow-y-auto">
-            <table className="w-full border-collapse text-sm">
+            <table className="portal-matrix-table w-full border-collapse text-sm">
               <caption className="sr-only">Training compliance by employee and course</caption>
               <thead>
                 <tr>

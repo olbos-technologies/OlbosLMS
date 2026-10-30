@@ -78,7 +78,7 @@ export default function MyLearningPage() {
               <EmptyState
                 icon={<BookOpen className="size-8" aria-hidden="true" />}
                 title="Nothing assigned"
-                description="You have completed everything currently required of you."
+                description="There are no active training assignments to display."
               />
             ) : (
               <ul className="divide-y divide-border">

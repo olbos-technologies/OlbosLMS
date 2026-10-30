@@ -32,7 +32,7 @@ import { complianceTone, formatDate, formatPercent, titleCase } from '@/lib/form
  * generate 403s to discard.
  */
 export default function DashboardPage() {
-  const { me, can } = useSession();
+  const { can } = useSession();
   const canSeeCompliance = can('compliance:read') || can('compliance:read_team');
 
   const learning = useQuery({
@@ -51,11 +51,17 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={`Good day, ${me?.user.firstName ?? ''}`}
-        description={
-          me?.employee?.jobRole?.title
-            ? `${me.employee.jobRole.title}${me.employee.department ? ` · ${me.employee.department.name}` : ''}`
-            : 'Your training and compliance overview'
+        title="Overview"
+        description="Your learning progress, assigned training, and records at a glance."
+        actions={
+          <>
+            <Link href="/catalog" className="portal-secondary-action">
+              Explore courses
+            </Link>
+            <Link href="/learning" className="portal-primary-action">
+              My learning →
+            </Link>
+          </>
         }
       />
 
@@ -125,8 +131,8 @@ export default function DashboardPage() {
             </div>
           ) : (learning.data?.assignments.length ?? 0) === 0 ? (
             <EmptyState
-              title="Nothing outstanding"
-              description="You have completed everything assigned to you."
+              title="No active assignments"
+              description="There are no outstanding training assignments to display."
             />
           ) : (
             <Table>

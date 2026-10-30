@@ -67,7 +67,7 @@ export default function AcademyPage() {
   return (
     <>
       <header className="academy-banner">
-        <div className="academy-eyebrow">Olbos · Professional education</div>
+        <div className="academy-eyebrow">Professional education</div>
         <h1>Certification Academy</h1>
         <p>
           Structured learning and independent practice for professional certification preparation.
