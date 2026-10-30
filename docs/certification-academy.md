@@ -95,3 +95,23 @@ inspected. Screenshots were saved locally under the ignored `tmp/` folder.
 
 No hosted environment was changed. Production publication still requires an
 authorized human review of all seven lessons and twenty question drafts.
+
+## Institutional interface refinement
+
+Academy screens share a scoped visual system using existing Olbos color and
+typography tokens: formal course mastheads, breadcrumb navigation, consistent
+section headings, accessible primary actions, and restrained document surfaces.
+The course reader provides a sticky syllabus, distinct completion indicators,
+previous/next lesson navigation, readable lesson typography, learning-objective
+and exercise panels, reference links, and separate practice/history sections.
+Practice screens add a question navigator, answer-state labels, lettered choices,
+and results summaries derived from the persisted attempt. Narrow screens stack
+these areas into one column and offer a collapsible syllabus. No grading, authorization or content-review rules
+are changed by this presentation update.
+
+Refinement verification: the webpack production build, web TypeScript check,
+ESLint and formatting checks passed. Browser checks confirmed previous/next
+lesson navigation, the mobile syllabus toggle, all twenty question links,
+navigation to question 10, and the persisted result summary. Course and results
+pages had 375px content width within a 375px mobile viewport. Updated screenshots
+are under `tmp/academy-institutional-*.png` in the local checkout.

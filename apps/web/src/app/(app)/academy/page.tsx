@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Badge, Button, Card, CardHeader, ProgressBar, Skeleton } from '@olbos/ui';
-import { PageHeader } from '@/components/app-shell';
+import { ArrowRight, BookOpen, FileQuestion, GraduationCap } from 'lucide-react';
 import { useSession } from '@/components/session';
 import { api } from '@/lib/api';
 
@@ -66,21 +66,39 @@ export default function AcademyPage() {
   }
   return (
     <>
-      <PageHeader
-        title="Certification Academy"
-        description="Build understanding. Practice with purpose. Track your own progress."
-      />
-      <Card className="mb-6 p-6">
-        <Badge tone="neutral">CLOUD · ASSOCIATE</Badge>
-        <h2 className="mt-3 text-2xl font-semibold text-ink">Your path to AWS architecture</h2>
-        <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-          Start with AWS fundamentals and IAM. Seven lessons connect core ideas to architecture
-          decisions, followed by twenty original practice questions.
+      <header className="academy-banner">
+        <div className="academy-eyebrow">Olbos · Professional education</div>
+        <h1>Certification Academy</h1>
+        <p>
+          Structured learning and independent practice for professional certification preparation.
         </p>
-        <p className="mt-3 text-xs text-ink-muted">
-          Week 1 foundation · SAA-C03 · No AWS account required · Weeks 2–12 are planned
-        </p>
-      </Card>
+        <div className="academy-meta">
+          <span>
+            <GraduationCap size={15} aria-hidden="true" />
+            Cloud architecture
+          </span>
+          <span>
+            <BookOpen size={15} aria-hidden="true" />
+            Self-paced study
+          </span>
+          <span>
+            <FileQuestion size={15} aria-hidden="true" />
+            Instructor-reviewed publication
+          </span>
+        </div>
+      </header>
+      <div className="academy-section-heading">
+        <div>
+          <h2>Available courses</h2>
+          <p>
+            Courses published by your organization. Your enrollment and progress are recorded
+            separately.
+          </p>
+        </div>
+        <span className="text-xs text-ink-muted">
+          {catalog.data?.courses.length ?? 0} available
+        </span>
+      </div>
       {(error || catalog.error) && (
         <Alert tone="danger" title="Unable to complete request">
           {error || catalog.error?.message}
@@ -101,46 +119,62 @@ export default function AcademyPage() {
         {catalog.data?.courses.map((course) => {
           const enrollment = catalog.data.enrollments.find((e) => e.courseId === course.id);
           return (
-            <Card key={course.id} className="p-6">
-              <Badge tone="neutral">SAA-C03 · VERSION {course.publishedVersion.version}</Badge>
-              <h2 className="mt-3 text-lg font-semibold text-ink">{course.title}</h2>
-              <p className="my-3 text-sm text-ink-muted">{course.summary}</p>
-              <p className="mb-4 text-xs text-ink-muted">
-                Prerequisite: basic familiarity with web applications. Includes text lessons,
-                architecture exercises and a practice quiz.
-              </p>
-              {enrollment ? (
-                <>
-                  <ProgressBar value={enrollment.progressPercent} />
-                  <p className="my-2 text-xs text-ink-muted">
-                    {enrollment.progressPercent}% of foundation lessons completed
-                  </p>
-                  <Link
-                    className="font-medium text-brand-700"
-                    href={`/academy/learn/${enrollment.id}`}
+            <Card key={course.id} className="overflow-hidden">
+              <div className="flex items-center gap-3 border-b border-border bg-surface-muted px-6 py-4">
+                <span className="academy-resource-icon">
+                  <GraduationCap size={20} aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="academy-eyebrow text-ink-muted">Cloud architecture</p>
+                  <p className="mt-1 text-xs text-ink-muted">Associate level · Self-paced</p>
+                </div>
+              </div>
+              <div className="p-6">
+                <Badge tone="neutral">SAA-C03 · VERSION {course.publishedVersion.version}</Badge>
+                <h2 className="mt-3 text-lg font-semibold text-ink">{course.title}</h2>
+                <p className="my-3 text-sm text-ink-muted">{course.summary}</p>
+                <p className="mb-4 text-xs text-ink-muted">
+                  Prerequisite: basic familiarity with web applications. Includes text lessons,
+                  architecture exercises and a practice quiz.
+                </p>
+                {enrollment ? (
+                  <>
+                    <ProgressBar value={enrollment.progressPercent} />
+                    <p className="my-2 text-xs text-ink-muted">
+                      {enrollment.progressPercent}% of foundation lessons completed
+                    </p>
+                    <Link
+                      className="academy-link academy-primary-link mt-3 w-full"
+                      href={`/academy/learn/${enrollment.id}`}
+                    >
+                      Continue learning <ArrowRight size={15} aria-hidden="true" />
+                    </Link>
+                  </>
+                ) : (
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    loading={busy}
+                    onClick={() => {
+                      void action(`/api/v1/academy/courses/${course.id}/enroll`).then((result) => {
+                        if (result?.id) window.location.assign(`/academy/learn/${result.id}`);
+                      });
+                    }}
                   >
-                    Continue learning →
-                  </Link>
-                </>
-              ) : (
-                <Button
-                  disabled={busy}
-                  onClick={() => {
-                    void action(`/api/v1/academy/courses/${course.id}/enroll`).then((result) => {
-                      if (result?.id) window.location.assign(`/academy/learn/${result.id}`);
-                    });
-                  }}
-                >
-                  Enroll in Week 1
-                </Button>
-              )}
+                    Enroll in course <ArrowRight size={15} aria-hidden="true" />
+                  </Button>
+                )}
+              </div>
+              <div className="border-t border-border px-6 py-3 text-[11px] leading-6 text-ink-muted">
+                Week 1 foundation available · Weeks 2–12 are planned
+              </div>
             </Card>
           );
         })}
       </div>
       {!!catalog.data?.enrollments.length && (
         <Card className="mt-4 p-6">
-          <h2 className="font-semibold text-ink">My enrolled versions</h2>
+          <h2 className="font-semibold text-ink">Enrollment records</h2>
           {catalog.data.enrollments.map((e) => (
             <p key={e.id} className="mt-2">
               <Link className="text-brand-700" href={`/academy/learn/${e.id}`}>
@@ -151,7 +185,7 @@ export default function AcademyPage() {
         </Card>
       )}
       {instructor && (
-        <section className="mt-8">
+        <section className="mt-8 rounded-lg border border-border bg-surface p-5 sm:p-6">
           <CardHeader
             title="Instructor review"
             description="Drafts are not available to learners. Review every lesson, answer and source before approval."
@@ -235,7 +269,7 @@ export default function AcademyPage() {
           ))}
         </section>
       )}
-      <p className="mt-8 text-xs text-ink-muted">
+      <p className="academy-notice">
         Independently created Olbos learning and practice material. Not an official AWS exam or AWS
         certification. Practice results do not guarantee an examination outcome.
       </p>
