@@ -51,6 +51,13 @@ export const NAVIGATION: readonly NavigationSection[] = [
     label: 'Discovery',
     items: [
       {
+        id: 'academy',
+        label: 'Certification Academy',
+        href: '/academy',
+        icon: 'GraduationCap',
+        anyOf: ['course:read'],
+      },
+      {
         id: 'catalog',
         label: 'Course Catalog',
         href: '/catalog',

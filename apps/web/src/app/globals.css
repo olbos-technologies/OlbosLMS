@@ -1,3 +1,4 @@
 @import '@olbos/ui/styles.css';
+@import './portal.css';
 @source "../../src/**/*.{ts,tsx}";
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";

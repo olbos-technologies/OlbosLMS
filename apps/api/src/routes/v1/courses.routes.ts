@@ -365,6 +365,7 @@ export const courseRoutes: FastifyPluginAsync = async (app) => {
         title: true,
         summary: true,
         status: true,
+        tags: true,
         versions: {
           orderBy: { version: 'desc' },
           take: 1,
@@ -380,6 +381,12 @@ export const courseRoutes: FastifyPluginAsync = async (app) => {
       },
     });
     if (!course) throw ApiError.notFound('Course');
+
+    if (course.tags.includes('certification-academy')) {
+      throw ApiError.conflict(
+        'Academy content must be reviewed and published through the academy review workflow.',
+      );
+    }
 
     request.authorize('course:publish', { courseId: course.id });
 

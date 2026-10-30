@@ -106,11 +106,8 @@ export default async function VerifyCertificatePage({
     <main className="min-h-dvh bg-canvas px-4 py-10">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded bg-brand-600 text-xs font-bold text-white">
-            O
-          </span>
           <div>
-            <p className="text-sm font-semibold text-ink">OLBOS Certificate Verification</p>
+            <h1 className="text-xl font-semibold text-ink">Certificate verification</h1>
             <p className="text-xs text-ink-muted">Independent check of a training certificate</p>
           </div>
         </div>

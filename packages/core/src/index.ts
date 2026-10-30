@@ -159,3 +159,4 @@ export {
   type RiskThresholds,
   type RiskWeights,
 } from './risk.js';
+export * from './academy.js';
