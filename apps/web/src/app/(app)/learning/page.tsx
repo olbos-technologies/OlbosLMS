@@ -18,6 +18,7 @@ import {
 import { api } from '@/lib/api';
 import type { CertificateListItem, MyLearning } from '@/lib/types';
 import { PageHeader } from '@/components/app-shell';
+import { AcademyProgress } from '@/components/academy-progress';
 import { useSession } from '@/components/session';
 import { formatDate, formatMinutes, titleCase } from '@/lib/format';
 
@@ -59,6 +60,8 @@ export default function MyLearningPage() {
           if you cannot.
         </Alert>
       ) : null}
+
+      <AcademyProgress />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">

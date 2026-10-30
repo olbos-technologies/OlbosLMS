@@ -28,10 +28,19 @@ source to find out.
 
 ## Engines built, HTTP surface not
 
+The Certification Academy foundation now exposes tenant-scoped enrollment,
+lesson progress and server-graded practice at `/academy`. It reuses the existing
+course and assessment models. Week 1 contains seven lesson drafts and twenty
+question drafts, with an explicit instructor approval gate. Human content review
+is required before production publication. See [the academy audit and scope](certification-academy.md).
+Full mock exams, adaptive practice, AI coaching, lab workflows, the remaining
+eleven weeks and academy completion certificates remain future milestones.
+
 The domain logic is written and unit-tested; the endpoints and screens over it
 are not:
 
-- Quiz attempts and grading (`packages/core/src/quiz.ts`)
+- General-purpose quiz authoring and delivery beyond the academy foundation
+  (`packages/core/src/quiz.ts` grading is reused by academy practice)
 - Gradebook calculation (`packages/core/src/grading.ts`)
 - Course completion gating (`packages/core/src/completion.ts`)
 - At-risk scoring (`packages/core/src/risk.ts` — used in the employee profile only)

@@ -20,6 +20,7 @@ import { api, type ApiClientError } from '@/lib/api';
 import type { ComplianceDashboard, MyLearning } from '@/lib/types';
 import { useSession } from '@/components/session';
 import { PageHeader } from '@/components/app-shell';
+import { AcademyProgress } from '@/components/academy-progress';
 import { complianceTone, formatDate, formatPercent, titleCase } from '@/lib/format';
 
 /**
@@ -59,6 +60,7 @@ export default function DashboardPage() {
       />
 
       {/* --- personal position ------------------------------------------- */}
+      <AcademyProgress />
       <section aria-labelledby="my-training" className="mb-6">
         <h2 id="my-training" className="mb-3 text-sm font-semibold text-ink">
           My training
