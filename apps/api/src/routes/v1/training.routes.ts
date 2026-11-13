@@ -53,11 +53,11 @@ const requirementFields = z.object({
   shift: z.string().max(64).optional(),
   hazardExposure: z.string().max(64).optional(),
   equipmentKey: z.string().max(64).optional(),
-  dueWithinDays: z.number().int().min(0).max(3650).nullable().default(30),
+  dueWithinDays: z.number().int().min(0).max(3650).nullable(),
   renewalIntervalDays: z.number().int().min(0).max(3650).nullable().optional(),
   warningIntervalDays: z.array(z.number().int().min(1).max(3650)).max(10).optional(),
-  isMandatory: z.boolean().default(true),
-  isActive: z.boolean().default(true),
+  isMandatory: z.boolean(),
+  isActive: z.boolean(),
   basis: z.string().max(1000).optional(),
   effectiveFrom: z.coerce.date().optional(),
   effectiveUntil: z.coerce.date().optional(),
@@ -67,26 +67,32 @@ const requirementFields = z.object({
  * Each scope needs its own target; without this a JOB_ROLE requirement with no
  * job role would silently apply to nobody.
  */
-const requirementBody = requirementFields.superRefine((value, ctx) => {
-  const required: Partial<Record<z.infer<typeof requirementScope>, keyof typeof value>> = {
-    DEPARTMENT: 'departmentId',
-    LOCATION: 'locationId',
-    JOB_ROLE: 'jobRoleId',
-    EMPLOYMENT_TYPE: 'employmentType',
-    SHIFT: 'shift',
-    HAZARD_EXPOSURE: 'hazardExposure',
-    EQUIPMENT_AUTHORIZATION: 'equipmentKey',
-    INDIVIDUAL: 'employeeId',
-  };
-  const field = required[value.scopeType];
-  if (field && !value[field]) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: [field],
-      message: `A ${value.scopeType.toLowerCase().replace('_', ' ')} requirement needs this field.`,
-    });
-  }
-});
+const requirementBody = requirementFields
+  .extend({
+    dueWithinDays: requirementFields.shape.dueWithinDays.default(30),
+    isMandatory: requirementFields.shape.isMandatory.default(true),
+    isActive: requirementFields.shape.isActive.default(true),
+  })
+  .superRefine((value, ctx) => {
+    const required: Partial<Record<z.infer<typeof requirementScope>, keyof typeof value>> = {
+      DEPARTMENT: 'departmentId',
+      LOCATION: 'locationId',
+      JOB_ROLE: 'jobRoleId',
+      EMPLOYMENT_TYPE: 'employmentType',
+      SHIFT: 'shift',
+      HAZARD_EXPOSURE: 'hazardExposure',
+      EQUIPMENT_AUTHORIZATION: 'equipmentKey',
+      INDIVIDUAL: 'employeeId',
+    };
+    const field = required[value.scopeType];
+    if (field && !value[field]) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: `A ${value.scopeType.toLowerCase().replace('_', ' ')} requirement needs this field.`,
+      });
+    }
+  });
 
 export const trainingRoutes: FastifyPluginAsync = async (app) => {
   // -------------------------------------------------------------------------

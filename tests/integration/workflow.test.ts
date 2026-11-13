@@ -217,6 +217,11 @@ describe('the critical workflow', () => {
       data: { organizationId: tenant.organizationId, title: 'Office Clerk', hazardExposures: [] },
     });
 
+    await db().employee.update({
+      where: { id: employeeId },
+      data: { employmentType: 'PART_TIME' },
+    });
+
     const response = await call(app, {
       method: 'PATCH',
       url: `/api/v1/employees/${employeeId}`,
@@ -230,6 +235,8 @@ describe('the critical workflow', () => {
     };
     expect(body.meta.requirementsRecalculated).toBe(true);
     expect(body.meta.trainingWithdrawn).toBe(1);
+    const employee = await db().employee.findUniqueOrThrow({ where: { id: employeeId } });
+    expect(employee.employmentType).toBe('PART_TIME');
 
     // The obligation is gone, but the historical record is untouched: the
     // person really did complete that training.

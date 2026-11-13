@@ -63,10 +63,9 @@ webhooks, invoices.
 
 ## Known dependency advisories
 
-`pnpm audit --prod --audit-level high` is clean and is the blocking CI gate:
-nothing a deployed process loads carries a high or critical advisory.
-`deepmerge-ts` reached production through `prisma > @prisma/config` and is
-pinned forward via a `pnpm.overrides` entry.
+CI blocks high and critical production advisories via `pnpm audit --prod --audit-level high`.
+The release baseline updates Next.js, Fastify, and Zod and pins patched transitive dependencies.
+The Zod upgrade keeps defaults on create requests and preserves omitted fields on PATCH requests.
 
 Advisories remaining in **test and build tooling** are reported by CI as a
 warning rather than a failure, because none is reachable by a deployed process:

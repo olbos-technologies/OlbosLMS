@@ -19,7 +19,7 @@ export const parseQuery = <T extends ZodTypeAny>(request: FastifyRequest, schema
 export const parseParams = <T extends ZodTypeAny>(request: FastifyRequest, schema: T): z.infer<T> =>
   schema.parse(request.params ?? {});
 
-export const uuidSchema = z.string().uuid('Expected an identifier');
+export const uuidSchema = z.guid('Expected an identifier');
 
 /**
  * A boolean from a query string.

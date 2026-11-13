@@ -194,9 +194,7 @@ export const meRoutes: FastifyPluginAsync = async (app) => {
 
   app.post('/me/notifications/read', async (request) => {
     const { principal, db } = request.requireTenant();
-    const body = z
-      .object({ ids: z.array(z.string().uuid()).max(200).optional() })
-      .parse(request.body ?? {});
+    const body = z.object({ ids: z.array(z.guid()).max(200).optional() }).parse(request.body ?? {});
 
     const result = await db.notification.updateMany({
       where: {
