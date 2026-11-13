@@ -27,3 +27,5 @@ export {
   type NotificationTransport,
   type OutboundNotification,
 } from './transport.js';
+
+export { configureEmail, createSmtpTransport } from './smtp.js';

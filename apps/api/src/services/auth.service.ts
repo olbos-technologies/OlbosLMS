@@ -313,14 +313,27 @@ export const PASSWORD_RESET_TTL_MINUTES = 60;
  */
 export const requestPasswordReset = async (
   email: string,
-  options: { ipAddress?: string | null; requestId?: string | null } = {},
+  options: { ipAddress?: string | null; requestId?: string | null; organizationSlug?: string } = {},
   prisma: PrismaClient = getPrismaClient(),
-): Promise<{ userId: string; token: string; expiresAt: Date } | null> => {
-  const user = await prisma.user.findFirst({
-    where: { emailNormalized: normaliseEmail(email), deletedAt: null, status: 'ACTIVE' },
-    select: { id: true, organizationId: true },
+): Promise<{
+  userId: string;
+  organizationId: string | null;
+  email: string;
+  token: string;
+  expiresAt: Date;
+} | null> => {
+  const users = await prisma.user.findMany({
+    where: {
+      emailNormalized: normaliseEmail(email),
+      deletedAt: null,
+      status: 'ACTIVE',
+      ...(options.organizationSlug ? { organization: { slug: options.organizationSlug } } : {}),
+    },
+    select: { id: true, organizationId: true, email: true },
+    take: 2,
   });
-  if (!user) return null;
+  const user = users[0];
+  if (!user || users.length !== 1) return null;
 
   const { token, tokenHash } = generateToken();
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MINUTES * 60_000);
@@ -343,7 +356,13 @@ export const requestPasswordReset = async (
     prisma,
   );
 
-  return { userId: user.id, token, expiresAt };
+  return {
+    userId: user.id,
+    organizationId: user.organizationId,
+    email: user.email,
+    token,
+    expiresAt,
+  };
 };
 
 export type ResetOutcome = 'OK' | 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_USED';
@@ -366,8 +385,12 @@ export const completePasswordReset = async (
   const passwordHash = await hashPassword(newPassword);
   const now = new Date();
 
-  await prisma.$transaction(async (tx) => {
-    await tx.passwordResetToken.update({ where: { id: record.id }, data: { usedAt: now } });
+  const updated = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.passwordResetToken.updateMany({
+      where: { id: record.id, usedAt: null, expiresAt: { gt: now } },
+      data: { usedAt: now },
+    });
+    if (claimed.count !== 1) return false;
     await tx.user.update({
       where: { id: record.userId },
       data: { passwordHash, passwordUpdatedAt: now, ...clearFailedAttempts() },
@@ -378,7 +401,9 @@ export const completePasswordReset = async (
       where: { userId: record.userId, revokedAt: null },
       data: { revokedAt: now, revokedReason: 'PASSWORD_RESET' },
     });
+    return true;
   });
+  if (!updated) return 'INVALID_TOKEN';
 
   const user = await prisma.user.findUnique({
     where: { id: record.userId },

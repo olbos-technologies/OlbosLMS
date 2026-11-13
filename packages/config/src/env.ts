@@ -67,6 +67,7 @@ export const envSchema = z.object({
     .default(100 * 1024 * 1024),
 
   MAIL_DRIVER: z.enum(['log', 'smtp']).default('log'),
+  MAIL_WEB_ORIGIN: z.string().url().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: port.optional(),
   SMTP_USER: z.string().optional(),
@@ -97,8 +98,14 @@ const crossFieldChecks = (env: Env): string[] => {
     }
   }
 
-  if (env.MAIL_DRIVER === 'smtp' && !env.SMTP_HOST) {
-    problems.push('SMTP_HOST is required when MAIL_DRIVER=smtp');
+  if (env.MAIL_DRIVER === 'smtp') {
+    if (!env.SMTP_HOST) problems.push('SMTP_HOST is required when MAIL_DRIVER=smtp');
+    if (Boolean(env.SMTP_USER) !== Boolean(env.SMTP_PASSWORD)) {
+      problems.push('SMTP_USER and SMTP_PASSWORD must be configured together');
+    }
+    if (env.MAIL_WEB_ORIGIN && !env.WEB_ORIGIN.includes(env.MAIL_WEB_ORIGIN)) {
+      problems.push('MAIL_WEB_ORIGIN must match a configured WEB_ORIGIN');
+    }
   }
 
   if (env.AI_DRIVER === 'anthropic' && !env.ANTHROPIC_API_KEY) {

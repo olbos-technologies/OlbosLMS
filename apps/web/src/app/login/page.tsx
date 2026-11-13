@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
@@ -125,6 +126,10 @@ export default function LoginPage() {
                   {...register('password')}
                 />
               </Field>
+
+              <Link href="/reset-password" className="block text-sm text-brand-600 underline">
+                Forgot your password?
+              </Link>
 
               <Button type="submit" variant="primary" className="w-full" loading={isSubmitting}>
                 Sign in

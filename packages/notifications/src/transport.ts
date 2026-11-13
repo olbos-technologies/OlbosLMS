@@ -12,7 +12,7 @@ export interface OutboundNotification {
   readonly channel: NotificationChannel;
   readonly to: string;
   readonly message: NotificationMessage;
-  readonly organizationId: string;
+  readonly organizationId: string | null;
   readonly userId: string;
   readonly metadata?: Record<string, unknown>;
 }

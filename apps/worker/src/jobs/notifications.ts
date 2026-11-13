@@ -1,9 +1,10 @@
+import { getEnv } from '@olbos/config';
 import { forTenant, getPrismaClient } from '@olbos/database';
 import {
   batchByRecipient,
   buildSupervisorDigest,
   buildTrainingMessage,
-  CATEGORY_POLICIES,
+  configureEmail,
   dedupeKey,
   resolveDelivery,
   type NotificationCategory,
@@ -222,67 +223,77 @@ export const notificationDispatchJob: JobDefinition = {
 
   async run({ log, now, signal }): Promise<JobResult> {
     const prisma = getPrismaClient();
+    const env = getEnv();
+    const email = configureEmail(env);
     let sent = 0;
     let failed = 0;
 
     const pending = await prisma.notification.findMany({
-      where: { status: 'PENDING', scheduledFor: { lte: now } },
+      where: {
+        status: 'PENDING',
+        scheduledFor: { lte: now },
+        channel: { in: email ? ['IN_APP', 'EMAIL'] : ['IN_APP'] },
+      },
       orderBy: { scheduledFor: 'asc' },
       take: 500,
       select: {
         id: true,
         organizationId: true,
+        userId: true,
         channel: true,
-        category: true,
         subject: true,
-        user: { select: { email: true } },
+        body: true,
+        actionUrl: true,
+        createdAt: true,
+        user: { select: { email: true, status: true, deletedAt: true } },
       },
     });
 
     for (const notification of pending) {
       if (signal.aborted) break;
 
-      try {
-        if (notification.channel === 'IN_APP') {
-          // In-app notifications are already durable the moment the row exists.
-          await prisma.notification.update({
-            where: { id: notification.id },
-            data: { status: 'SENT', sentAt: now },
-          });
-          sent += 1;
+      const where = { id: notification.id };
+      if (notification.channel === 'EMAIL' && email) {
+        if (notification.user.deletedAt || notification.user.status !== 'ACTIVE') {
+          await prisma.notification.update({ where, data: { status: 'SUPPRESSED' } });
           continue;
         }
-
-        // Email, SMS and push go through @olbos/notifications transports. The
-        // deployment wires a real transport in `main.ts`; the log transport
-        // records what would have been sent.
-        log.info(
-          {
-            channel: notification.channel,
-            to: notification.user.email,
-            subject: notification.subject,
-            category: notification.category,
-            mandatory: CATEGORY_POLICIES[notification.category as NotificationCategory].mandatory,
-          },
-          'notification dispatched',
-        );
-
-        await prisma.notification.update({
-          where: { id: notification.id },
-          data: { status: 'SENT', sentAt: now },
+        const actionUrl =
+          notification.actionUrl?.startsWith('/') && !/^[/][ /\\]/.test(notification.actionUrl)
+            ? new URL(notification.actionUrl, env.MAIL_WEB_ORIGIN ?? env.WEB_ORIGIN[0]).toString()
+            : undefined;
+        const receipt = await email.send({
+          channel: 'EMAIL',
+          to: notification.user.email,
+          organizationId: notification.organizationId,
+          userId: notification.userId,
+          message: { subject: notification.subject, body: notification.body, actionUrl },
         });
-        sent += 1;
-      } catch (error) {
-        failed += 1;
-        await prisma.notification.update({
-          where: { id: notification.id },
-          data: {
-            status: 'FAILED',
-            failedAt: now,
-            failureReason: error instanceof Error ? error.message : String(error),
-          },
-        });
+        if (!receipt.delivered) {
+          failed += 1;
+          const retry = now.getTime() - notification.createdAt.getTime() < 24 * HOUR;
+          await prisma.notification.update({
+            where,
+            data: {
+              status: retry ? 'PENDING' : 'FAILED',
+              scheduledFor: retry ? new Date(now.getTime() + HOUR) : undefined,
+              failedAt: now,
+              failureReason: receipt.error ?? 'Email delivery failed',
+            },
+          });
+          log.warn(
+            { notificationId: notification.id, retry },
+            'notification email delivery failed',
+          );
+          continue;
+        }
       }
+
+      await prisma.notification.update({
+        where,
+        data: { status: 'SENT', sentAt: now, failedAt: null, failureReason: null },
+      });
+      sent += 1;
     }
 
     return {
