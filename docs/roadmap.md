@@ -5,33 +5,43 @@ source to find out.
 
 ## Built and verified
 
-| Area                  | State                                                                                                         |
-| --------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Multi-tenancy         | Tenant client with query rewriting; 111 integration tests                                                     |
-| Authentication        | Argon2id, server-side sessions, lockout, reset, change, device list                                           |
-| Authorization         | ~130 permissions, 9 roles, scopes, visibility ladders, explainable decisions                                  |
-| Database              | 76 tables, 2 migrations, append-only audit triggers, seed                                                     |
-| Expiration engine     | Renewal intervals, warning ladders, timezone-correct day boundaries                                           |
-| Requirement engine    | 9 scope types, attribute-change re-evaluation, diffing                                                        |
-| Compliance & matrix   | Materialised states, rollups, filters, CSV export                                                             |
-| Certificates          | HMAC integrity, public verification, revocation, tamper detection                                             |
-| Representation (§10)  | Enforced at course creation and publication                                                                   |
-| Practical assessments | Criteria scoring, critical-criterion rule, signatures                                                         |
-| Grading engines       | Weighted categories, drop-lowest, late penalties, letter scales                                               |
-| Quiz auto-grading     | 8 question types, partial credit, manual-grading fallback                                                     |
-| Billing               | Plans, entitlements, overrides, usage limits                                                                  |
-| AI guardrails         | Prompts plus output review; human review for learner-facing content                                           |
-| Notifications         | Content, preferences, cooldowns, digests, transports                                                          |
-| Storage               | Local driver; S3 driver with hand-rolled SigV4                                                                |
-| Worker                | Sweep, recalculation, notifications, cleanup, metering                                                        |
-| Web                   | Login, command centre, safety centre, matrix, compliance, learning, catalogue, employees, public verification |
+| Area                  | State                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Multi-tenancy         | Tenant client with query rewriting; 111 integration tests                                                                                        |
+| Authentication        | Argon2id, server-side sessions, lockout, reset, change, device list                                                                              |
+| Authorization         | ~130 permissions, 9 roles, scopes, visibility ladders, explainable decisions                                                                     |
+| Database              | 76 tables, 3 migrations, append-only audit triggers, seed                                                                                        |
+| Expiration engine     | Renewal intervals, warning ladders, timezone-correct day boundaries                                                                              |
+| Requirement engine    | 9 scope types, attribute-change re-evaluation, diffing                                                                                           |
+| Compliance & matrix   | Materialised states, rollups, filters, CSV export                                                                                                |
+| Certificates          | HMAC integrity, public verification, revocation, tamper detection                                                                                |
+| Representation (§10)  | Enforced at course creation and publication                                                                                                      |
+| Practical assessments | Criteria scoring, critical-criterion rule, signatures                                                                                            |
+| Grading engines       | Weighted categories, drop-lowest, late penalties, letter scales                                                                                  |
+| Quiz auto-grading     | 8 question types, partial credit, manual-grading fallback                                                                                        |
+| Billing               | Plans, entitlements, overrides, usage limits                                                                                                     |
+| AI guardrails         | Prompts plus output review; human review for learner-facing content                                                                              |
+| Notifications         | Content, preferences, cooldowns, digests, transports                                                                                             |
+| Storage               | Local driver; S3 driver with hand-rolled SigV4                                                                                                   |
+| Worker                | Sweep, recalculation, notifications, cleanup, metering                                                                                           |
+| Web                   | Login, command centre, safety centre, matrix, compliance, learning, catalogue, employees, public verification                                    |
+| Interface             | Neutral portal identity, shared institutional presentation, searchable navigation, responsive mobile drawer; see [interface notes](interface.md) |
 
 ## Engines built, HTTP surface not
+
+The Certification Academy foundation now exposes tenant-scoped enrollment,
+lesson progress and server-graded practice at `/academy`. It reuses the existing
+course and assessment models. Week 1 contains seven lesson drafts and twenty
+question drafts, with an explicit instructor approval gate. Human content review
+is required before production publication. See [the academy audit and scope](certification-academy.md).
+Full mock exams, adaptive practice, AI coaching, lab workflows, the remaining
+eleven weeks and academy completion certificates remain future milestones.
 
 The domain logic is written and unit-tested; the endpoints and screens over it
 are not:
 
-- Quiz attempts and grading (`packages/core/src/quiz.ts`)
+- General-purpose quiz authoring and delivery beyond the academy foundation
+  (`packages/core/src/quiz.ts` grading is reused by academy practice)
 - Gradebook calculation (`packages/core/src/grading.ts`)
 - Course completion gating (`packages/core/src/completion.ts`)
 - At-risk scoring (`packages/core/src/risk.ts` — used in the employee profile only)
@@ -43,6 +53,22 @@ endpoint or screen: assignments and submissions, discussions, announcements,
 calendar events, learning paths, question banks as a managed surface, safety
 scenarios and attempts, credentials beyond certificates, integrations, API keys,
 webhooks, invoices.
+
+## College management
+
+Olbos Campus academic foundation is implemented: programs, terms, catalog
+courses, sections, permissions, API, and `/campus` screen. Validation and rollout
+are described in [olbos-campus.md](olbos-campus.md). Admissions, student
+registration, transcripts, GPA, and tuition remain future phases.
+
+## Institution SaaS foundation
+
+Operator-assisted institution provisioning, guided setup, a billing dashboard,
+monthly hosted checkout, a billing portal, and signed provider-event
+reconciliation are implemented. Payments default to disabled. See
+[institution-saas.md](institution-saas.md) for configuration, tests, limitations,
+and production release prerequisites. Public signup and invitation delivery are
+not implemented, and production readiness has not been established.
 
 ## Not started
 
@@ -94,7 +120,7 @@ headless and does not start it.
 | 4 · Certification   | Complete except PDF rendering                                                 |
 | 5 · Advanced safety | Partial — practicals, incidents, JHA, observations built; scenario player not |
 | 6 · AI              | Guardrails and endpoints built; applying approved output is not               |
-| 7 · Billing         | Entitlements complete; payment provider not integrated                        |
+| 7 · Billing         | Entitlements and provider integration implemented; staging validation pending |
 | 8 · Enterprise      | Not started                                                                   |
 | 9 · Hardening       | Partial — security review done; load, accessibility and DR testing not        |
 

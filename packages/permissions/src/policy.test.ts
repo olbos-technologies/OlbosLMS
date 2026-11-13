@@ -298,3 +298,23 @@ describe('assertCan', () => {
     }
   });
 });
+
+describe('college administration access', () => {
+  it('grants campus management to institution administrators', () => {
+    for (const role of ['ORG_OWNER', 'ORG_ADMINISTRATOR'] as const) {
+      expect(can(ctxFor(role), 'campus:read')).toBe(true);
+      expect(can(ctxFor(role), 'campus:manage')).toBe(true);
+    }
+  });
+  it('does not grant administration to teaching or learner roles', () => {
+    for (const role of ['INSTRUCTOR', 'TEACHING_ASSISTANT', 'LEARNER'] as const) {
+      expect(can(ctxFor(role), 'campus:read')).toBe(false);
+      expect(can(ctxFor(role), 'campus:manage')).toBe(false);
+    }
+  });
+  it('supports a custom read-only campus role', () => {
+    const ctx = ctxFor('LEARNER', {}, { permissions: ['campus:read'] });
+    expect(can(ctx, 'campus:read')).toBe(true);
+    expect(can(ctx, 'campus:manage')).toBe(false);
+  });
+});

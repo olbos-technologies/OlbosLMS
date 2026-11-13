@@ -64,7 +64,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       // alone communicates nothing.
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+        'ui-button inline-flex items-center justify-center rounded-md font-medium transition-colors',
         'disabled:cursor-not-allowed',
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
@@ -99,7 +99,7 @@ export const Card = ({
 }: HTMLAttributes<HTMLDivElement>): ReactNode => (
   <div
     className={cn(
-      'rounded-[var(--radius-card)] border border-border bg-surface shadow-[0_1px_2px_rgba(16,24,40,0.04)]',
+      'ui-card rounded-[var(--radius-card)] border border-border bg-surface shadow-[0_1px_2px_rgba(16,24,40,0.04)]',
       className,
     )}
     {...props}
@@ -123,7 +123,7 @@ export const CardHeader = ({
 }: CardHeaderProps): ReactNode => (
   <div
     className={cn(
-      'flex items-start justify-between gap-4 border-b border-border px-5 py-4',
+      'ui-card-header flex items-start justify-between gap-4 border-b border-border px-5 py-4',
       className,
     )}
   >
@@ -284,7 +284,7 @@ export const KpiCard = ({
   hint,
   tone = 'neutral',
 }: KpiCardProps): ReactNode => (
-  <Card className="p-4">
+  <Card className="ui-kpi p-4">
     <p className="text-xs font-medium tracking-wide text-ink-muted uppercase">{label}</p>
     <p className={cn('mt-2 text-3xl font-semibold tabular-nums', KPI_TONES[tone])}>
       {value}
@@ -348,7 +348,7 @@ export const EmptyState = ({
   action?: ReactNode;
   icon?: ReactNode;
 }): ReactNode => (
-  <div className="flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
+  <div className="ui-empty flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
     {icon ? <div className="mb-1 text-ink-subtle">{icon}</div> : null}
     <p className="text-sm font-medium text-ink">{title}</p>
     {description ? <p className="max-w-sm text-xs text-ink-muted">{description}</p> : null}
@@ -400,7 +400,7 @@ export const Alert = ({
     // Errors and warnings are announced; informational notes are not, so a
     // screen reader is not interrupted by a disclaimer.
     role={tone === 'danger' || tone === 'warning' ? 'alert' : undefined}
-    className={cn('rounded-md border px-3 py-2 text-xs', ALERT_TONES[tone], className)}
+    className={cn('ui-alert rounded-md border px-3 py-2 text-xs', ALERT_TONES[tone], className)}
   >
     {title ? <p className="font-semibold">{title}</p> : null}
     {children ? <div className={title ? 'mt-0.5' : undefined}>{children}</div> : null}
@@ -457,7 +457,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
       <input
         ref={ref}
         className={cn(
-          'h-9 w-full rounded-md border border-border-strong bg-surface px-2.5 text-sm text-ink',
+          'ui-input h-10 w-full rounded-md border border-border-strong bg-surface px-3 text-sm text-ink',
           'placeholder:text-ink-subtle disabled:bg-surface-muted disabled:text-ink-subtle',
           'aria-[invalid=true]:border-status-expired',
           className,
@@ -474,7 +474,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
       <select
         ref={ref}
         className={cn(
-          'h-9 w-full rounded-md border border-border-strong bg-surface px-2 text-sm text-ink',
+          'ui-select h-10 w-full rounded-md border border-border-strong bg-surface px-3 text-sm text-ink',
           'disabled:bg-surface-muted disabled:text-ink-subtle',
           className,
         )}
@@ -493,7 +493,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 export const Table = ({ className, children }: { className?: string; children: ReactNode }) => (
   // Wide tables scroll inside their own container, never the page.
   <div className="scroll-x">
-    <table className={cn('w-full border-collapse text-sm', className)}>{children}</table>
+    <table className={cn('ui-table w-full border-collapse text-sm', className)}>{children}</table>
   </div>
 );
 

@@ -30,6 +30,8 @@ const LEARNER_BASELINE: Permission[] = [
   'course:read',
   'learning_path:read',
   'enrollment:read',
+  'enrollment:enroll_self',
+  'lesson:complete_own',
   'quiz:read',
   'quiz:attempt',
   'assignment:read',

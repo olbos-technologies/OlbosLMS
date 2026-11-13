@@ -63,3 +63,20 @@ describe('parseEnv', () => {
     ).toThrow(/must use https in production/);
   });
 });
+
+it('requires an approved return URL for online billing', () => {
+  const stripe = {
+    ...base,
+    BILLING_DRIVER: 'stripe',
+    STRIPE_SECRET_KEY: 'sk_test_fixture',
+    STRIPE_WEBHOOK_SECRET: 'whsec_fixture',
+  };
+  expect(() => parseEnv(stripe)).toThrow(/BILLING_RETURN_URL/);
+  expect(() =>
+    parseEnv({ ...stripe, BILLING_RETURN_URL: 'https://attacker.example/billing' }),
+  ).toThrow(/WEB_ORIGIN/);
+  expect(
+    parseEnv({ ...stripe, BILLING_RETURN_URL: 'http://localhost:3000/admin/billing' })
+      .BILLING_DRIVER,
+  ).toBe('stripe');
+});

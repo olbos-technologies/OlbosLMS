@@ -54,6 +54,7 @@ describe('navigation tree integrity', () => {
 
   it('covers every section named in the product specification', () => {
     expect(NAVIGATION.map((s) => s.id)).toEqual([
+      'campus',
       'command-center',
       'discovery',
       'learning',
@@ -150,4 +151,13 @@ describe('planned routes', () => {
     });
     expect(sections.flatMap((s) => s.items).every((i) => i.available)).toBe(true);
   });
+});
+
+it('shows the college workspace only with campus read access', () => {
+  expect(idsOf(buildNavigation(ctxFor('ORG_OWNER'), { entitlements: ALL_ENTITLEMENTS }))).toContain(
+    'campus',
+  );
+  expect(
+    idsOf(buildNavigation(ctxFor('LEARNER'), { entitlements: ALL_ENTITLEMENTS })),
+  ).not.toContain('campus');
 });

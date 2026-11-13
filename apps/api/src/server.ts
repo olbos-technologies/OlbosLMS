@@ -4,6 +4,7 @@ import { normaliseError } from './errors.js';
 import { contextPlugin } from './plugins/context.js';
 import { securityPlugin } from './plugins/security.js';
 import { healthRoutes } from './routes/health.js';
+import { stripeWebhookRoutes } from './routes/stripe-webhook.js';
 import { publicRoutes } from './routes/public.js';
 import { registerV1Routes } from './routes/v1/index.js';
 
@@ -79,6 +80,7 @@ export const buildServer = async (): Promise<FastifyInstance> => {
 
   await app.register(healthRoutes);
   await app.register(publicRoutes);
+  await app.register(stripeWebhookRoutes);
   await app.register(registerV1Routes, { prefix: '/api/v1' });
 
   return app;

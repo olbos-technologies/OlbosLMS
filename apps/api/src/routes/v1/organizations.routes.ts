@@ -31,6 +31,8 @@ export const organizationRoutes: FastifyPluginAsync = async (app) => {
         slug: true,
         name: true,
         legalName: true,
+        contactEmail: true,
+        websiteUrl: true,
         type: true,
         status: true,
         timezone: true,
