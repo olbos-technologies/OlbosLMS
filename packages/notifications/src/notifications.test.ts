@@ -79,7 +79,7 @@ describe('training messages', () => {
       expiresAt: due,
     });
     expect(message.body).toMatch(/ACME-2026-000042/);
-    expect(message.actionUrl).toBe('/learning/certificates');
+    expect(message.actionUrl).toBe('/learning');
   });
 
   it('names the revoking organization', () => {
