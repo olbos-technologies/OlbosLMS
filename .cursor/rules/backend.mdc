@@ -1,0 +1,39 @@
+---
+description: API endpoint conventions
+globs: ["apps/api/**/*.ts", "apps/worker/**/*.ts"]
+alwaysApply: false
+---
+
+# Backend
+
+## Every endpoint
+
+1. Zod schemas for body, query, params.
+2. `request.requireTenant()`.
+3. `request.authorize(permission, resource)`.
+4. `request.requireEntitlement(key)` when plan-gated.
+5. Query through `request.db`.
+6. `request.audit({...})` for state changes.
+7. `ok(data)` or `paginated(items, total, pagination)`.
+
+## Errors
+
+Throw `ApiError`; the handler normalises it. Never build a response by hand.
+
+`NOT_FOUND` covers both "absent" and "in another tenant" — deliberately
+indistinguishable.
+
+## Transactions
+
+Multi-step workflows that must not half-apply (completion → record → certificate)
+run in `withTenantTransaction`, with the audit row written inside the same
+transaction so a rollback leaves no entry claiming it happened.
+
+## Worker jobs
+
+A job is a named async function with an interval. It must:
+
+- be idempotent — a sweep over unchanged data reports zero changes;
+- catch per-tenant failures so one organization cannot stall another;
+- check `signal.aborted` in long loops;
+- return a summary and metrics for the log line.

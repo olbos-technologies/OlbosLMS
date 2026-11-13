@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  // Root-level TypeScript that belongs to no workspace package. This used to
+  // name `vitest.config.ts`, which does not exist here — the file is
+  // `vitest.workspace.ts` — so the config matched nothing and `tsc` failed with
+  // TS18003. Nobody saw it because `pnpm typecheck` ran only `pnpm -r`, which
+  // never invokes this config. It is now part of that script.
+  //
+  // `eslint.config.js` is deliberately not listed: it is JavaScript, so
+  // checking it would need `allowJs`/`checkJs` for one file.
+  "include": ["vitest.workspace.ts"]
+}

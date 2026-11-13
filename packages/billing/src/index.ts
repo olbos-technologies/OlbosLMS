@@ -1,0 +1,18 @@
+export {
+  assertEntitled,
+  assertWithinLimit,
+  ENTITLEMENT_KEYS,
+  EntitlementRequiredError,
+  PLAN_CATALOGUE,
+  resolveEntitlements,
+  UsageLimitExceededError,
+  type EntitlementGrant,
+  type EntitlementKey,
+  type EntitlementSet,
+  type EntitlementValueType,
+  type PlanDefinition,
+  type PlanTier,
+  type ResolveEntitlementsInput,
+  type ResolvedEntitlement,
+  type SubscriptionStatus,
+} from './entitlements.js';

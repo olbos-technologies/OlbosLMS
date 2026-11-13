@@ -1,0 +1,43 @@
+---
+description: Testing expectations
+globs: ["**/*.test.ts", "tests/**/*.ts"]
+alwaysApply: false
+---
+
+# Testing
+
+## Where
+
+- Pure domain logic → unit test next to the source. No database.
+- Anything crossing the tenant boundary → integration test against PostgreSQL.
+- Every new endpoint → at least one integration test, including the cross-tenant
+  case.
+
+## How
+
+Prefer a real database over a mock. The bugs that matter here are about what
+Postgres actually does — cascades, unique constraints, triggers — and a mock
+agrees with whatever you assumed.
+
+Assert on behaviour, not structure. `expect(response.statusCode).toBe(404)`
+survives a refactor.
+
+Make loop failures readable:
+`expect(`${label}:${status}`).toBe(`${label}:404`)`.
+
+**Never write an assertion that cannot fail.** `toBeGreaterThanOrEqual(0)` is
+worse than no test.
+
+## Tenant isolation tests
+
+Sign in as the *organization owner* of the other tenant — the most privileged
+actor available. Assert 404, not 403. Search the whole serialised response body
+for the other tenant's organization id, not just the fields you thought of.
+
+## Before claiming done
+
+```bash
+pnpm typecheck && pnpm lint && pnpm test:all
+```
+
+Run the application and exercise the change. Compiling is not working.

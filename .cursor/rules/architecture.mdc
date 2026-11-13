@@ -1,0 +1,32 @@
+---
+description: OLBOS architecture and where code belongs
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: true
+---
+
+# Architecture
+
+Three processes over one PostgreSQL database, with domain logic in packages that
+none of them own.
+
+- `apps/api` — Fastify. Auth, authorization, validation, audit, transactions.
+- `apps/web` — Next.js. Renders. Holds no business rules.
+- `apps/worker` — scheduled jobs. Single instance.
+- `packages/core`, `packages/permissions` — pure domain logic, no I/O.
+
+## Rules
+
+Domain logic goes in `packages/core` as a pure function with unit tests, even
+when only one endpoint uses it. That is what keeps the rules testable without a
+database.
+
+The web app never re-implements a rule the API enforces. Even the sidebar comes
+from `/api/v1/me/navigation`, built by the same permission checks — so the menu
+and the authorization rules cannot drift apart.
+
+Do not add a dependency for something you could write in thirty lines. The S3
+driver implements SigV4 directly rather than carrying the AWS SDK.
+
+Do not rewrite working architecture because you prefer a different framework.
+
+Read `docs/architecture.md` before making a structural change.

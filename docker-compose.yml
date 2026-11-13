@@ -1,0 +1,62 @@
+# Local development dependencies for OLBOS LMS.
+# Application processes (api/web/worker) are run with pnpm on the host.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: olbos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: olbos
+      POSTGRES_PASSWORD: olbos
+      POSTGRES_DB: olbos_dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - olbos-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U olbos -d olbos_dev']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: olbos-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '6379:6379'
+    volumes:
+      - olbos-redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    container_name: olbos-minio
+    restart: unless-stopped
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: olbos
+      MINIO_ROOT_PASSWORD: olbos-dev-secret
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - olbos-minio:/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: olbos-mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
+volumes:
+  olbos-postgres:
+  olbos-redis:
+  olbos-minio:

@@ -1,0 +1,46 @@
+---
+description: Security rules that are not negotiable
+globs: ["**/*.ts", "**/*.tsx", "**/*.prisma"]
+alwaysApply: true
+---
+
+# Security
+
+## Tenant isolation
+
+Every query serving a request goes through `request.db` — the tenant-scoped
+client. `getPrismaClient()` inside a route handler is a review failure.
+
+A cross-tenant read returns **404, not 403**. A 403 confirms the resource exists
+somewhere.
+
+A new table with `organizationId` must be added to `TENANT_OWNED_MODELS`. The
+schema-contract test fails the build otherwise.
+
+## Authorization
+
+Every endpoint calls `authorize()`. Frontend checks decide what to render; they
+are never the control.
+
+Pass the resource, so scoped roles work:
+`request.authorize('employee:update', { departmentId, subjectEmployeeId })`.
+
+List endpoints resolve a visibility ladder and translate it into a database
+filter — never fetch everything and trim.
+
+## Input
+
+Parse body, query and params with Zod. Nothing unvalidated reaches a service.
+
+`sort` must be checked against an explicit allowlist.
+
+Use `booleanQuery`, not `z.coerce.boolean()` — the latter reads `"false"` as
+`true`.
+
+## Never
+
+- Commit a secret. `.env` is git-ignored.
+- Use `$queryRawUnsafe` / `$executeRawUnsafe` (an ESLint rule blocks it).
+- Return an internal error, stack trace or SQL to a client.
+- Update or delete an audit row. The database will stop you.
+- Log a password, token, key or secret. `redact()` handles payloads.

@@ -1,0 +1,43 @@
+---
+description: Schema and Prisma conventions
+globs: ["**/*.prisma", "packages/database/**/*.ts", "**/services/**/*.ts"]
+alwaysApply: false
+---
+
+# Database
+
+## Conventions
+
+- UUID primary keys.
+- `organizationId` on every tenant-owned table, **first** in its indexes.
+- `@@map` to snake_case table names.
+- Money in integer minor units.
+- Soft delete (`deletedAt`) where history matters.
+
+## Adding a tenant-owned table
+
+1. `organizationId String @db.Uuid` plus a relation to `Organization`.
+2. `@@index([organizationId, ...])`.
+3. Add the model to `TENANT_OWNED_MODELS`, sorted.
+4. Migration. Never edit an applied migration.
+
+## Traps
+
+The tenant guard cannot be applied inside a Prisma transaction — extensions go on
+the client *before* `$transaction`. Use `withTenantTransaction()`.
+
+Prisma's generated types still require `organizationId` on creates. Pass it
+explicitly; the guard verifies rather than injects, which is stronger.
+
+`SET session_replication_role = 'replica'` disables foreign-key cascade triggers
+too. Never use it to bypass an audit trigger — it orphans rows. Use
+`withAuditTrailErasure()`.
+
+`Restrict` foreign keys (training records → courses) mean tenant deletion needs
+an ordered delete, not one cascade. `purgeOrganization()` handles it.
+
+## Never
+
+- `$queryRawUnsafe` / `$executeRawUnsafe` with anything user-supplied.
+- Edit an applied migration.
+- Delete a training record, certificate or audit row from application code.

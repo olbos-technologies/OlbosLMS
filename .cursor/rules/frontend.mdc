@@ -1,0 +1,42 @@
+---
+description: Web application conventions
+globs: ["apps/web/**/*.tsx", "apps/web/**/*.ts", "packages/ui/**/*.tsx"]
+alwaysApply: false
+---
+
+# Frontend
+
+## Rules
+
+No business logic. If the UI needs a rule, the API already enforces it — call it.
+
+Permission checks (`can()`) decide what to render. They are a convenience, never
+a control.
+
+Data through TanStack Query. Never retry a 4xx: a 401 or 403 is an answer, not a
+transient failure.
+
+Clear the query cache on sign-in and sign-out, or the next person to use the
+browser sees the previous user's identity and data.
+
+## Every screen needs
+
+Loading state, empty state, error state. §61: a feature is not done because the
+happy path renders.
+
+An entitlement error (402) shows a plan message, not a permission error.
+
+## Accessibility (WCAG 2.2 AA)
+
+- Semantic HTML: real `button`, real `label`, real `table`.
+- Never remove the focus ring. Restyle it if you must.
+- Status is never colour alone — every status badge carries text and a glyph, so
+  it survives greyscale printing and colour blindness.
+- Wide tables scroll inside their own container, never the page.
+- A skip link, and a visible `aria-current` on the active nav item.
+
+## Design
+
+Institutional and dense: this is software people look at for eight hours while
+deciding who may operate a forklift. Use the tokens in
+`packages/ui/src/styles.css`; do not introduce ad-hoc colours.

@@ -1,0 +1,34 @@
+---
+description: Multi-tenant SaaS rules
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: true
+---
+
+# SaaS
+
+## Tenancy
+
+The tenant comes from the authenticated session and nowhere else. No header, no
+query parameter, no body field influences which tenant a request is bound to.
+
+## Entitlements are data
+
+Never `if (plan === 'PRO')`. Ask `entitlements.allows('SAFETY_MODULE')` or
+`assertWithinLimit(entitlements, 'MAX_USERS', count)`.
+
+A missing entitlement is **402**, not 403 — "your plan does not include this" and
+"you are not allowed to do this" are different problems with different fixes.
+
+Adding a feature flag means adding an `EntitlementKey` and granting it in the
+plan catalogue, not a code branch.
+
+## Roles are data too
+
+Never branch on a role name. Ask for a permission, so a customer's custom role
+behaves exactly like a built-in one.
+
+## Per-tenant everything
+
+Settings, branding, warning ladders, renewal intervals, notification policy and
+disclaimers are the organization's own configuration. OLBOS never hard-codes a
+regulatory default and never implies one.

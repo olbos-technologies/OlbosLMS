@@ -1,0 +1,50 @@
+---
+description: Regulatory representation and safety-domain rules
+globs: ["**/*.ts", "**/*.tsx", "**/*.md"]
+alwaysApply: true
+---
+
+# Safety and representation
+
+## Never fabricate regulatory compliance
+
+OLBOS does not determine that anyone is compliant with anything. Never write —
+in code, a UI string, a comment, a test fixture or a commit message — a claim
+that:
+
+- OLBOS is OSHA, or is OSHA-approved or OSHA-certified
+- a course is OSHA-approved, OSHA-certified or OSHA-accredited
+- an instructor is OSHA-authorized (only a real authorisation makes that true)
+- training satisfies a legal or regulatory requirement
+- an organization is compliant
+
+OSHA does not approve or certify courses. Course types that assert an external
+authorisation (`OSHA_OUTREACH_TRAINING`, `CERTIFICATION`, `THIRD_PARTY_TRAINING`,
+`CREDENTIAL`) cannot be published without a recorded provider name and
+authorization identifier.
+
+The enforcement lives in `packages/core/src/representation.ts`. Do not weaken it.
+
+## Disclaimers travel with the record
+
+Stored on the course version, copied onto the certificate at issue, shown on the
+public verification page. An auditor reading a certificate years later must see
+the representation the learner saw.
+
+## Never rewrite history
+
+Training records, certificates and grades are append-or-supersede. A correction
+writes a new row and marks the old one superseded. Voiding sets `voidedAt` and a
+reason. Nothing is deleted.
+
+## Safety scoring is server-side
+
+A practical assessment's pass/fail is computed from the criteria on the server,
+never taken from the client. A critical criterion that fails fails the whole
+assessment regardless of the weighted score.
+
+## AI decides nothing
+
+AI may draft, summarise and explain. Anything reaching a learner is stored
+`PENDING_REVIEW` until a qualified human approves it. See
+`packages/ai/src/guardrails.ts`.

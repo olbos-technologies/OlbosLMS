@@ -1,0 +1,42 @@
+{
+  "name": "@olbos/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "prisma generate && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "generate": "dotenv -e ../../.env -- prisma generate",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "push": "dotenv -e ../../.env -- prisma db push",
+    "reset": "dotenv -e ../../.env -- prisma migrate reset --force",
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "seed": "dotenv -e ../../.env -- tsx --conditions development prisma/seed.ts",
+    "validate": "dotenv -e ../../.env -- prisma validate",
+    "format": "dotenv -e ../../.env -- prisma format"
+  },
+  "dependencies": {
+    "@olbos/config": "workspace:*",
+    "@prisma/client": "6.19.3"
+  },
+  "devDependencies": {
+    "@olbos/auth": "workspace:*",
+    "@olbos/billing": "workspace:*",
+    "@olbos/core": "workspace:*",
+    "@olbos/permissions": "workspace:*",
+    "dotenv-cli": "11.0.0",
+    "prisma": "6.19.3",
+    "tsx": "4.19.2",
+    "typescript": "5.7.2"
+  }
+}
