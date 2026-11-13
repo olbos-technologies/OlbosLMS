@@ -107,3 +107,18 @@ CDN, WAF, secret manager integration, log shipping, metrics export, tracing,
 error monitoring, autoscaling. The application emits structured JSON logs with
 request ids and exposes health endpoints; wiring them to a platform is
 deployment work that has not been done in this environment.
+
+## Transactional email
+
+Set `MAIL_DRIVER=smtp` for both API and worker. Configure `SMTP_HOST`,
+`SMTP_PORT` (defaults to 587, implicit TLS on 465), `MAIL_FROM`, and
+`SMTP_USER` and `SMTP_PASSWORD` together when required by your relay. The
+SMTP connection requires TLS in production and when credentials are used.
+Set `MAIL_WEB_ORIGIN` to the learner-facing origin in `WEB_ORIGIN` when
+multiple origins are configured. Otherwise the first configured origin is used.
+
+Password reset links are sent by the API and carry the one-time token in the
+URL fragment. Training emails are sent by the single-instance worker. A failed
+training delivery is retried hourly for up to a day after creation, then marked
+failed. The log driver leaves email pending and does not send password reset
+links. Records marked sent by earlier releases are not replayed automatically.

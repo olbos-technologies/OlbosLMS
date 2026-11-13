@@ -79,7 +79,6 @@ not implemented, and production readiness has not been established.
 - Report generation as background jobs with stored artefacts (reports are synchronous)
 - PDF certificate rendering (data and verification exist; no PDF)
 - QR check-in for sessions (`checkInCode` is generated; no scan flow)
-- Email delivery (transport interface exists; the worker logs what it would send)
 - Mobile-specific flows: bottom sheets, QR scanning
 - Committed Playwright suite (the app was driven with Playwright during the build,
   but that script is not in the repository)
@@ -130,9 +129,7 @@ headless and does not start it.
    attachments; the drivers are ready.
 2. **Assessment surface.** The quiz and gradebook engines are tested and unused —
    the highest ratio of value to remaining work.
-3. **Email delivery.** Notifications are generated and dispatched but only
-   logged; without a transport the expiry-warning ladder does nothing for users.
-4. **Committed browser tests.** The critical workflow is covered at the API
+3. **Committed browser tests.** The critical workflow is covered at the API
    layer; the UI is not covered by anything in the repository.
-5. **Row-level security.** Application-layer isolation is proven, but a second
+4. **Row-level security.** Application-layer isolation is proven, but a second
    layer in the database would make a direct-connection mistake survivable.

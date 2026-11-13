@@ -263,7 +263,7 @@ export const buildTrainingMessage = (
         body: `Your certificate for ${context.courseTitle}${
           context.certificateNumber ? ` (${context.certificateNumber})` : ''
         } is ready${context.expiresAt ? `, valid until ${formatDate(context.expiresAt)}` : ''}.`,
-        actionUrl: '/learning/certificates',
+        actionUrl: '/learning',
         actionLabel: 'View certificate',
       };
     case 'CERTIFICATE_REVOKED':
@@ -272,7 +272,7 @@ export const buildTrainingMessage = (
         body: `Your certificate for ${context.courseTitle}${
           context.certificateNumber ? ` (${context.certificateNumber})` : ''
         } has been revoked by ${context.organizationName ?? 'your organization'}.`,
-        actionUrl: '/learning/certificates',
+        actionUrl: '/learning',
         actionLabel: 'View certificates',
       };
     default:

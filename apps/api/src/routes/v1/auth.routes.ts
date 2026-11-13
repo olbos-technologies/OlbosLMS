@@ -2,6 +2,7 @@ import type { FastifyPluginAsync, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { getEnv } from '@olbos/config';
 import { emailSchema, passwordSchema } from '@olbos/auth';
+import { configureEmail } from '@olbos/notifications';
 import { effectivePermissions } from '@olbos/permissions';
 import { ApiError } from '../../errors.js';
 import { ok, parseBody } from '../../lib/http.js';
@@ -147,20 +148,34 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     '/auth/password/forgot',
     { config: { skipCsrf: true, rateLimit: { max: 5, timeWindow: '15 minutes' } } },
     async (request) => {
-      const body = parseBody(request, z.object({ email: emailSchema }));
-
-      const issued = await requestPasswordReset(body.email, {
-        ipAddress: request.ip,
-        requestId: request.requestId,
-      });
-
-      if (issued) {
-        // The mail transport is wired in the worker; the token is logged here
-        // in development so the flow is testable without a mailbox.
-        request.log.info(
-          { userId: issued.userId, expiresAt: issued.expiresAt },
-          'password reset token issued',
-        );
+      const body = parseBody(
+        request,
+        z.object({ email: emailSchema, organizationSlug: z.string().trim().max(64).optional() }),
+      );
+      const env = getEnv();
+      const email = configureEmail(env);
+      if (email) {
+        const issued = await requestPasswordReset(body.email, {
+          organizationSlug: body.organizationSlug,
+          ipAddress: request.ip,
+          requestId: request.requestId,
+        });
+        if (issued) {
+          const link = new URL('/reset-password', env.MAIL_WEB_ORIGIN ?? env.WEB_ORIGIN[0]);
+          link.hash = new URLSearchParams({ token: issued.token }).toString();
+          const receipt = await email.send({
+            channel: 'EMAIL',
+            to: issued.email,
+            organizationId: issued.organizationId,
+            userId: issued.userId,
+            message: {
+              subject: 'Reset your Olbos LMS password',
+              body: 'Use this one-time link to reset your password. If you did not request a reset, you can ignore this email.',
+              actionUrl: link.toString(),
+            },
+          });
+          if (!receipt.delivered) request.log.warn('Password reset email delivery failed');
+        }
       }
 
       // Always the same answer, whether or not the account exists.
