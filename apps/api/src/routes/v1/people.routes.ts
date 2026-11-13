@@ -25,7 +25,7 @@ import { diffSnapshots } from '../../services/audit.service.js';
  * People: employees, students, and the organization structure they sit in.
  */
 
-const employeeBody = z.object({
+const employeeFields = z.object({
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().min(1).max(100),
   email: emailSchema.optional(),
@@ -34,10 +34,16 @@ const employeeBody = z.object({
   locationId: uuidSchema.nullable().optional(),
   jobRoleId: uuidSchema.nullable().optional(),
   supervisorId: uuidSchema.nullable().optional(),
-  employmentType: z
-    .enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'TEMPORARY', 'SEASONAL', 'INTERN', 'VOLUNTEER'])
-    .default('FULL_TIME'),
-  status: z.enum(['ACTIVE', 'ON_LEAVE', 'TERMINATED']).default('ACTIVE'),
+  employmentType: z.enum([
+    'FULL_TIME',
+    'PART_TIME',
+    'CONTRACT',
+    'TEMPORARY',
+    'SEASONAL',
+    'INTERN',
+    'VOLUNTEER',
+  ]),
+  status: z.enum(['ACTIVE', 'ON_LEAVE', 'TERMINATED']),
   shift: z.string().max(64).nullable().optional(),
   hireDate: z.coerce.date().nullable().optional(),
   equipmentAuthorizations: z.array(z.string().max(64)).max(50).optional(),
@@ -45,6 +51,11 @@ const employeeBody = z.object({
   isStudent: z.boolean().optional(),
   studentNumber: z.string().max(50).nullable().optional(),
   programOfStudy: z.string().max(200).nullable().optional(),
+});
+
+const employeeBody = employeeFields.extend({
+  employmentType: employeeFields.shape.employmentType.default('FULL_TIME'),
+  status: employeeFields.shape.status.default('ACTIVE'),
 });
 
 /** Attributes that change which training an employee owes. */
@@ -432,7 +443,7 @@ export const peopleRoutes: FastifyPluginAsync = async (app) => {
   app.patch('/employees/:id', async (request) => {
     const { organizationId, principal, db } = request.requireTenant();
     const { id } = parseParams(request, idParams);
-    const body = parseBody(request, employeeBody.partial());
+    const body = parseBody(request, employeeFields.partial());
 
     const before = await db.employee.findFirst({ where: { id, deletedAt: null } });
     if (!before) throw ApiError.notFound('Employee');

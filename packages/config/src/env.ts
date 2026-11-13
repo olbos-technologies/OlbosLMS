@@ -45,7 +45,7 @@ export const envSchema = z.object({
   API_PORT: port.default(4000),
   API_HOST: nonEmpty.default('0.0.0.0'),
   API_PUBLIC_URL: z.string().url().default('http://localhost:4000'),
-  WEB_ORIGIN: csv.default('http://localhost:3000'),
+  WEB_ORIGIN: csv.prefault('http://localhost:3000'),
 
   SESSION_SECRET: secret,
   CERTIFICATE_SIGNING_SECRET: secret,

@@ -5,9 +5,7 @@ const config: NextConfig = {
   poweredByHeader: false,
   // Workspace packages ship TypeScript sources; Next compiles them in place.
   transpilePackages: ['@olbos/ui', '@olbos/permissions'],
-  experimental: {
-    typedRoutes: false,
-  },
+  typedRoutes: false,
   async headers() {
     return [
       {
