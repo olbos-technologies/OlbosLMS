@@ -5,8 +5,8 @@ import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: {
-    default: 'OLBOS LMS',
-    template: '%s · OLBOS LMS',
+    default: 'Learning portal',
+    template: '%s · Learning portal',
   },
   description: 'Learning, training and safety compliance management.',
   robots: { index: false, follow: false },

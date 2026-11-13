@@ -41,7 +41,13 @@ process.env.CERTIFICATE_SIGNING_SECRET ??= 'test-certificate-secret-'.padEnd(48,
 // Bring the schema up to date before any suite connects. `migrate deploy` is
 // idempotent, so repeated runs are cheap.
 execFileSync(
-  path.join(repoRoot, 'packages/database/node_modules/.bin/prisma'),
-  ['migrate', 'deploy', '--schema', path.join(repoRoot, 'packages/database/prisma/schema.prisma')],
+  process.execPath,
+  [
+    path.join(repoRoot, 'packages/database/node_modules/prisma/build/index.js'),
+    'migrate',
+    'deploy',
+    '--schema',
+    path.join(repoRoot, 'packages/database/prisma/schema.prisma'),
+  ],
   { stdio: 'pipe', env: { ...process.env, DATABASE_URL: testUrl } },
 );

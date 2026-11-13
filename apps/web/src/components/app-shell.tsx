@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import * as icons from 'lucide-react';
-import { Avatar, Badge, Button, cn, Skeleton } from '@olbos/ui';
+import { Avatar, Button, cn, Skeleton } from '@olbos/ui';
 import { api } from '@/lib/api';
 import { useSession } from './session';
 
@@ -31,6 +31,67 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [navSearch, setNavSearch] = useState('');
+  const mobilePanel = useRef<HTMLDivElement>(null);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
+  const activeItem = navigation
+    .flatMap((section) => section.items)
+    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+  const pageLabel = (label: string) => (label === 'Command Center' ? 'Overview' : label);
+  const seen = new Set<string>();
+  const visibleNavigation = navigation
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (seen.has(item.href)) return false;
+        seen.add(item.href);
+        return pageLabel(item.label).toLowerCase().includes(navSearch.trim().toLowerCase());
+      }),
+    }))
+    .filter((section) => section.items.length);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    mobilePanel.current?.querySelector<HTMLElement>('button, a, input')?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setMobileNavOpen(false);
+      }
+      if (event.key !== 'Tab') return;
+      const controls = [
+        ...(mobilePanel.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not(:disabled), input',
+        ) ?? []),
+      ];
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    const resized = () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) setMobileNavOpen(false);
+    };
+    document.addEventListener('keydown', keydown);
+    window.addEventListener('resize', resized);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener('keydown', keydown);
+      window.removeEventListener('resize', resized);
+      if (window.matchMedia('(max-width: 1023px)').matches)
+        menuTrigger.current?.focus({ preventScroll: true });
+      else previous?.focus({ preventScroll: true });
+    };
+  }, [mobileNavOpen]);
 
   useEffect(() => {
     if (error?.isUnauthenticated) router.replace('/login');
@@ -77,21 +138,30 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
 
   const sidebar = (
     <nav aria-label="Main" className="flex h-full flex-col">
-      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
-        <span className="grid size-7 place-items-center rounded bg-brand-600 text-xs font-bold text-white">
-          O
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-ink">OLBOS</p>
-          <p className="truncate text-[11px] text-ink-subtle">{me.organization?.name}</p>
-        </div>
+      <div className="portal-sidebar-heading">
+        <Link href="/dashboard" className="portal-wordmark">
+          Learning portal
+        </Link>
+        <p>Education & training workspace</p>
       </div>
-
+      <div className="portal-nav-search">
+        <icons.Search size={15} aria-hidden="true" />
+        <input
+          aria-label="Find a page"
+          type="search"
+          placeholder="Find a page…"
+          value={navSearch}
+          onChange={(event) => setNavSearch(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setNavSearch('');
+          }}
+        />
+      </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-        {navigation.map((section) => (
+        {visibleNavigation.map((section) => (
           <div key={section.id} className="mb-4">
             <p className="px-2 pb-1 text-[10px] font-semibold tracking-wider text-ink-subtle uppercase">
-              {section.label}
+              {section.label === 'Command Center' ? 'Workspace' : section.label}
             </p>
             <ul className="space-y-0.5">
               {section.items.map((item) => {
@@ -102,16 +172,17 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
                   <li key={item.id}>
                     <Link
                       href={item.href}
+                      onClick={() => setNavSearch('')}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors',
+                        'portal-nav-link flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors',
                         active
                           ? 'bg-brand-50 font-medium text-brand-700'
                           : 'text-ink-muted hover:bg-surface-muted hover:text-ink',
                       )}
                     >
                       <Icon name={item.icon} className="size-4 shrink-0" />
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate">{pageLabel(item.label)}</span>
                     </Link>
                   </li>
                 );
@@ -119,6 +190,17 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
             </ul>
           </div>
         ))}
+        {!visibleNavigation.length && (
+          <div className="p-3 text-xs leading-6 text-ink-muted">
+            No pages match “{navSearch}”.
+            <button
+              className="mt-2 block font-medium text-brand-700"
+              onClick={() => setNavSearch('')}
+            >
+              Clear search
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="shrink-0 border-t border-border p-3">
@@ -128,16 +210,15 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
             <p className="truncate text-xs font-medium text-ink">
               {me.user.firstName} {me.user.lastName}
             </p>
-            <p className="truncate text-[11px] text-ink-subtle">{me.user.email}</p>
+            <p className="truncate text-[11px] text-ink-muted">Signed in</p>
           </div>
         </div>
-        <div className="mt-2 flex flex-wrap gap-1">
-          {me.roles.slice(0, 2).map((role) => (
-            <Badge key={role.key} tone="brand">
-              {role.key.replaceAll('_', ' ').toLowerCase()}
-            </Badge>
-          ))}
-        </div>
+        <p className="mt-3 text-[11px] capitalize text-ink-muted">
+          {me.roles
+            .slice(0, 2)
+            .map((role) => role.key.replaceAll('_', ' ').toLowerCase())
+            .join(' · ')}
+        </p>
         <Button
           size="sm"
           variant="ghost"
@@ -152,7 +233,7 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
   );
 
   return (
-    <div className="flex min-h-dvh bg-canvas">
+    <div className="portal-shell flex min-h-dvh bg-canvas">
       <a
         href="#main"
         className="sr-only-focusable absolute top-2 left-2 z-50 rounded bg-brand-600 px-3 py-2 text-sm text-white"
@@ -160,7 +241,10 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
         Skip to content
       </a>
 
-      <aside className="hidden w-64 shrink-0 border-r border-border bg-surface lg:block">
+      <aside
+        className="portal-sidebar hidden w-64 shrink-0 border-r border-border bg-surface lg:block"
+        inert={mobileNavOpen || undefined}
+      >
         <div className="sticky top-0 h-dvh">{sidebar}</div>
       </aside>
 
@@ -168,16 +252,33 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
         <div className="fixed inset-0 z-40 lg:hidden">
           <button
             aria-label="Close navigation"
+            tabIndex={-1}
             className="absolute inset-0 bg-ink/30"
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="absolute inset-y-0 left-0 w-72 bg-surface shadow-xl">{sidebar}</div>
+          <div
+            ref={mobilePanel}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Workspace navigation"
+            className="portal-mobile-panel absolute inset-y-0 left-0 w-72 bg-surface shadow-xl"
+          >
+            <button
+              className="portal-mobile-close"
+              aria-label="Close navigation"
+              onClick={() => setMobileNavOpen(false)}
+            >
+              <icons.X size={18} aria-hidden="true" />
+            </button>
+            {sidebar}
+          </div>
         </div>
       ) : null}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/90 px-4 backdrop-blur">
+      <div className="flex min-w-0 flex-1 flex-col" inert={mobileNavOpen || undefined}>
+        <header className="portal-topbar sticky top-0 z-30 flex shrink-0 items-center gap-3 border-b border-border bg-surface px-4">
           <Button
+            ref={menuTrigger}
             variant="ghost"
             size="sm"
             className="lg:hidden"
@@ -188,20 +289,31 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-ink">
-              {me.organization?.name ?? 'OLBOS'}
+              <>
+                <span className="hidden font-normal text-ink-muted sm:inline">
+                  Workspace <span className="mx-2 text-ink-subtle">/</span>
+                </span>
+                {pageLabel(
+                  activeItem?.label ??
+                    (pathname === '/training' ? 'Required Training' : 'Workspace'),
+                )}
+              </>
             </p>
           </div>
-          <Link
-            href="/learning"
-            className="text-xs text-ink-muted underline-offset-2 hover:text-ink hover:underline"
-          >
+          <Link href="/catalog" className="portal-utility-link hidden sm:inline-flex">
+            Browse courses
+          </Link>
+          <Link href="/learning" className="portal-utility-link">
             My learning
           </Link>
         </header>
 
-        <main id="main" className="min-w-0 flex-1 p-4 sm:p-6">
-          {children}
+        <main id="main" className="portal-main min-w-0 flex-1">
+          <div className="portal-content">{children}</div>
         </main>
+        <footer className="portal-footer">
+          Learning, training & records<span>Access is managed by your administrator</span>
+        </footer>
       </div>
     </div>
   );
@@ -216,11 +328,14 @@ export const PageHeader = ({
   description?: string;
   actions?: ReactNode;
 }): ReactNode => (
-  <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <header className="portal-page-header">
     <div className="min-w-0">
+      <p className="portal-eyebrow">Learning & training workspace</p>
       <h1 className="text-xl font-semibold text-ink">{title}</h1>
       {description ? <p className="mt-1 text-sm text-ink-muted">{description}</p> : null}
     </div>
-    {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
-  </div>
+    {actions ? (
+      <div className="portal-page-actions flex flex-wrap items-center gap-2">{actions}</div>
+    ) : null}
+  </header>
 );

@@ -68,9 +68,21 @@ The worker records per-tenant counters every six hours: users, courses, storage
 bytes, AI requests. `assertWithinLimit` reads live counts at the point of use, so
 a limit is enforced when it is crossed rather than at the next meter run.
 
+## Institution subscriptions
+
+See [institution-saas.md](institution-saas.md) for the operator-assisted onboarding,
+monthly Stripe Checkout, billing portal, signed webhooks, invoice synchronization,
+and the subscription dashboard. Online payment defaults to disabled and requires
+configured provider credentials, return URL, and plan price mappings.
+
+`GET /billing/plans` now reads the database catalog and requires `billing:read`.
+`POST /billing/checkout` and `/billing/portal` require `billing:manage` and CSRF.
+Trials stop granting plan features at `trialEndsAt`; past-due access remains.
+
 ## Not implemented
 
-Payment collection, invoice generation, plan self-service upgrade and downgrade,
-proration, dunning. `BILLING_DRIVER` and the Stripe configuration exist as an
-extension point; the provider integration does not. Invoices are readable but
-nothing writes them.
+Public institution signup, invitation delivery, automated tax configuration,
+self-service plan downgrade policies, custom proration, student tuition billing,
+and fully unified student/staff licensing. Stripe handles configured recurring
+collection and its payment retry settings; Olbos does not implement a separate
+dunning campaign. Production release requires staging and provider-sandbox tests.

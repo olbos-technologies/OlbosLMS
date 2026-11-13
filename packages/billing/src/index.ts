@@ -16,3 +16,11 @@ export {
   type ResolvedEntitlement,
   type SubscriptionStatus,
 } from './entitlements.js';
+
+export {
+  BillingProviderError,
+  StripeBillingClient,
+  hostedBillingUrl,
+  stripeSubscriptionStatus,
+  verifyStripeSignature,
+} from './stripe.js';

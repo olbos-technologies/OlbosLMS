@@ -74,6 +74,8 @@ export const PERMISSION_DEFINITIONS = define([
   { slug: 'job_role:read', group: 'people', description: 'View job roles' },
   { slug: 'job_role:manage', group: 'people', description: 'Create and edit job roles' },
 
+  { slug: 'campus:read', group: 'academics', description: 'View college academic structure' },
+  { slug: 'campus:manage', group: 'academics', description: 'Manage college academic structure' },
   // --- academics ----------------------------------------------------------
   { slug: 'course:read', group: 'academics', description: 'View the course catalogue' },
   { slug: 'course:create', group: 'academics', description: 'Create courses' },
@@ -82,6 +84,16 @@ export const PERMISSION_DEFINITIONS = define([
   { slug: 'course:archive', group: 'academics', description: 'Archive courses' },
   { slug: 'course:delete', group: 'academics', description: 'Delete draft courses' },
   { slug: 'enrollment:read', group: 'academics', description: 'View enrollments' },
+  {
+    slug: 'enrollment:enroll_self',
+    group: 'academics',
+    description: 'Enroll in available courses for yourself',
+  },
+  {
+    slug: 'lesson:complete_own',
+    group: 'academics',
+    description: 'Complete lessons in your own enrollments',
+  },
   { slug: 'enrollment:manage', group: 'academics', description: 'Enroll and unenroll learners' },
   { slug: 'learning_path:read', group: 'academics', description: 'View learning paths' },
   {
@@ -320,6 +332,8 @@ export const PLATFORM_PERMISSIONS: readonly Permission[] = PERMISSION_DEFINITION
  * satisfy a request about another subject with one of these.
  */
 export const SELF_SCOPED_PERMISSIONS = new Set<Permission>([
+  'enrollment:enroll_self',
+  'lesson:complete_own',
   'employee:read_own',
   'grade:read_own',
   'training_assignment:read_own',

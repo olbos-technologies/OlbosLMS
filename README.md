@@ -108,6 +108,7 @@ public verification page.
 | [`testing.md`](docs/testing.md)                 | Approach, and the bugs the tests caught               |
 | [`deployment.md`](docs/deployment.md)           | Processes, roles, health, backups                     |
 | [`roadmap.md`](docs/roadmap.md)                 | **What is not built**                                 |
+| [`interface.md`](docs/interface.md)             | Shared presentation, navigation and neutral identity  |
 
 `AGENTS.md` and `CLAUDE.md` hold the rules for coding agents.
 

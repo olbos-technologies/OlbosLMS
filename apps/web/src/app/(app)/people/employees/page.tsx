@@ -19,6 +19,7 @@ import {
 import { api, type ApiClientError } from '@/lib/api';
 import type { EmployeeListItem, Paginated } from '@/lib/types';
 import { PageHeader } from '@/components/app-shell';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { formatDate, titleCase } from '@/lib/format';
 
 /**
@@ -32,12 +33,13 @@ import { formatDate, titleCase } from '@/lib/format';
 export default function EmployeesPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const settledSearch = useDebouncedValue(search);
 
   const employees = useQuery<Paginated<EmployeeListItem>, ApiClientError>({
-    queryKey: ['employees', { search, page }],
+    queryKey: ['employees', { search: settledSearch, page }],
     queryFn: async () => {
       const response = await api.get<EmployeeListItem[]>('/api/v1/employees', {
-        search: search.trim() || undefined,
+        search: settledSearch.trim() || undefined,
         page,
         pageSize: 25,
       });
@@ -69,7 +71,7 @@ export default function EmployeesPage() {
         }
       />
 
-      <Card className="mb-4 p-4">
+      <Card className="portal-filter-bar mb-4 p-4">
         <Field label="Search" htmlFor="employee-search">
           <div className="relative max-w-md">
             <Search
@@ -174,7 +176,7 @@ export default function EmployeesPage() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    className="rounded border border-border-strong px-2.5 py-1 text-xs disabled:opacity-40"
+                    className="portal-utility-link disabled:opacity-40"
                     disabled={page <= 1}
                     onClick={() => setPage((current) => Math.max(1, current - 1))}
                   >
@@ -182,7 +184,7 @@ export default function EmployeesPage() {
                   </button>
                   <button
                     type="button"
-                    className="rounded border border-border-strong px-2.5 py-1 text-xs disabled:opacity-40"
+                    className="portal-utility-link disabled:opacity-40"
                     disabled={page >= totalPages}
                     onClick={() => setPage((current) => current + 1)}
                   >

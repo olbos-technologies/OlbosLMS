@@ -2,6 +2,7 @@ import { ZodError } from 'zod';
 import { TenantIsolationError } from '@olbos/database';
 import { ForbiddenError } from '@olbos/permissions';
 import { EntitlementRequiredError, UsageLimitExceededError } from '@olbos/billing';
+import { BillingProviderError } from '@olbos/billing';
 import { AiUnavailableError } from '@olbos/ai';
 import { StorageError } from '@olbos/storage';
 
@@ -140,6 +141,8 @@ export const normaliseError = (error: unknown, requestId: string): NormalisedErr
     logLevel: options.logLevel ?? (STATUS_BY_CODE[code] >= 500 ? 'error' : 'warn'),
     cause: error,
   });
+
+  if (error instanceof BillingProviderError) return build('SERVICE_UNAVAILABLE', error.message);
 
   if (error instanceof ApiError) {
     return build(error.code, error.message, error.details);

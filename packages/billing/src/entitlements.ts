@@ -7,6 +7,7 @@
  */
 
 export const ENTITLEMENT_KEYS = [
+  'CAMPUS_MODULE',
   'AI_TUTOR',
   'AI_COURSE_BUILDER',
   'AI_QUESTION_GENERATOR',
@@ -104,6 +105,7 @@ export const PLAN_CATALOGUE: readonly PlanDefinition[] = [
     isPublic: true,
     sortOrder: 1,
     entitlements: [
+      flag('CAMPUS_MODULE'),
       flag('CERTIFICATES'),
       limit('MAX_USERS', 50),
       limit('MAX_COURSES', 50),
@@ -123,6 +125,7 @@ export const PLAN_CATALOGUE: readonly PlanDefinition[] = [
     isPublic: true,
     sortOrder: 2,
     entitlements: [
+      flag('CAMPUS_MODULE'),
       flag('CERTIFICATES'),
       flag('SAFETY_MODULE'),
       flag('TRAINING_MATRIX'),
@@ -154,6 +157,7 @@ export const PLAN_CATALOGUE: readonly PlanDefinition[] = [
     isPublic: true,
     sortOrder: 3,
     entitlements: [
+      flag('CAMPUS_MODULE'),
       flag('CERTIFICATES'),
       flag('SAFETY_MODULE'),
       flag('TRAINING_MATRIX'),
@@ -196,6 +200,7 @@ export interface ResolveEntitlementsInput {
   readonly planEntitlements?: readonly EntitlementGrant[];
   readonly overrides?: readonly EntitlementGrant[];
   readonly subscriptionStatus?: SubscriptionStatus;
+  readonly trialEndsAt?: Date | null;
   readonly now?: Date;
 }
 
@@ -264,7 +269,9 @@ const resolveGrant = (
  */
 export const resolveEntitlements = (input: ResolveEntitlementsInput): EntitlementSet => {
   const now = input.now ?? new Date();
-  const active = ACTIVE_STATUSES.has(input.subscriptionStatus ?? 'ACTIVE');
+  const active =
+    ACTIVE_STATUSES.has(input.subscriptionStatus ?? 'ACTIVE') &&
+    !(input.subscriptionStatus === 'TRIALING' && input.trialEndsAt && input.trialEndsAt <= now);
 
   const resolved = new Map<EntitlementKey, ResolvedEntitlement>();
 
